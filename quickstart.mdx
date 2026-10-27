@@ -1,47 +1,58 @@
 ---
 title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+description: "Connect a server and deploy your first app from GitHub in about ten minutes."
+icon: "rocket"
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
-
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+You need a Symplax account, a GitHub repository with a web app in it, and a server. If you do
+not have a server yet, Symplax can set one up for you.
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
-
-    ```bash
-    npm install your-package
-    ```
+  <Step title="Create your account">
+    Sign up at [symplax.com](https://symplax.com/signup) and verify your email. The Free plan
+    needs no card.
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+  <Step title="Add a server">
+    In the dashboard, go to **Servers** and add one:
 
-    ```bash
-    your-cli init
-    ```
+    - **Connect your own:** click **New Server**, **Connect existing server**, and enter its IP
+      address and SSH login. Symplax signs in and sets everything up. Ubuntu or Debian works best.
+      See [Connect a server](/servers/connect).
+    - **Buy one:** pick a size and pay by the hour from your wallet. It is ready in about a
+      minute. See [Buy a server](/servers/buy-a-server).
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
-
-    ```bash
-    your-cli start
-    ```
+  <Step title="Connect GitHub">
+    Go to **Apps** and click to create an app. The first time, Symplax asks you to install its
+    GitHub app so it can read your repositories.
+  </Step>
+  <Step title="Deploy">
+    Pick the repository, the branch and the server, then deploy. Symplax detects the framework,
+    or uses your `Dockerfile` if there is one, and follows the build live.
+  </Step>
+  <Step title="Open your app">
+    When the deploy finishes, your app is live at its free `https://<app>.symplax.app` address.
+    Every push to the branch deploys again.
   </Step>
 </Steps>
 
 <Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
-
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
+  Prefer the terminal? Run `npx symplax login`, then `npx symplax deploy` to deploy and follow
+  the build without leaving it. See the [CLI](/cli/overview).
 </Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Add a database" icon="database" href="/databases/overview">
+    Create one on the same server and link it to your app.
+  </Card>
+  <Card title="Environment variables" icon="key" href="/apps/environment-variables">
+    Add secrets and settings, including ones needed at build time.
+  </Card>
+  <Card title="Custom domain" icon="globe" href="/apps/domains">
+    Point your own domain at the app, with HTTPS set up for you.
+  </Card>
+  <Card title="Invite your team" icon="users" href="/teams/roles">
+    Work together with roles that decide who can see and change what.
+  </Card>
+</CardGroup>

@@ -1,0 +1,144 @@
+---
+title: "Deploy from GitHub"
+description: "Connect a GitHub repository, pick a branch and server, and Symplax builds and runs your app on your own VPS."
+icon: "github"
+---
+
+<img src="/images/buddy-deploying.webp" alt="" width="160" />
+
+You point Symplax at a GitHub repository and a server. Symplax builds a Docker image from your code on its own build machines, ships the image to your server, health checks it, and only then sends traffic to it. Your server never compiles anything.
+
+<Note>
+  An app is one container on one server. Symplax deploys from GitHub only: GitLab and Bitbucket are not supported. Your app must answer HTTP on a port. Background workers, bots and queue consumers that serve no HTTP cannot pass the health check, so they are not supported yet.
+</Note>
+
+## Deploy your first app
+
+You need a connected server first. See [Connect a server](/servers/connect) or [Buy a server](/servers/buy-a-server).
+
+<Steps>
+  <Step title="Open the deploy sheet">
+    Go to **Apps** and click **Deploy App**.
+  </Step>
+  <Step title="Choose the source">
+    Under **Deployment source**, pick **Git repository**. If you have not connected GitHub yet, Symplax sends you to GitHub to install the Symplax GitHub App. Choose which repositories it may read, public or private, then come back.
+  </Step>
+  <Step title="Pick the repository and branch">
+    Search for the repository, then choose a branch. If the repository holds several apps, Symplax lists the folders it can deploy. Pick one, or type a path in **Root directory**. See [Monorepos](/apps/monorepos).
+  </Step>
+  <Step title="Name it and choose a server">
+    Give the app a name and choose the **Target server**. Leave **Domain** blank to get a free `*.symplax.app` address.
+  </Step>
+  <Step title="Add variables and deploy">
+    Add any environment variables your app needs, and a release command if it runs migrations. Click **Start Deployment**.
+  </Step>
+</Steps>
+
+The first deploy usually takes a few minutes. Later deploys reuse the build cache and are faster.
+
+## How Symplax builds your code
+
+If your root directory contains a `Dockerfile`, Symplax builds it as is. That is the way to deploy any language or setup the detector does not cover.
+
+Without a `Dockerfile`, Symplax looks at the files in your root directory and writes one for you. It checks for these, in this order:
+
+| Stack | Detected by | Notes | Port |
+| --- | --- | --- | --- |
+| Node.js | `package.json` | Labels Next.js, Nuxt, NestJS, Express, Fastify and Remix. Runs `npm run start` if you have a `start` script, otherwise `node` on your entry file. | 3000 |
+| Static frontend | `package.json` with a `build` script and Vite, Create React App, Vue CLI or Angular, and no server framework | Runs your build, then serves the output folder as static files. | 8080 |
+| Python | `requirements.txt`, `pyproject.toml`, `setup.py` or `setup.cfg` | Django (gunicorn), FastAPI (uvicorn) or Flask (gunicorn). Python 3.11. | 8000 |
+| Go | `go.mod` | Reads the port from your code if it is hard-coded. Go 1.22. | 8080 |
+| Ruby | `Gemfile` | Rails, Rack (`config.ru`) or a plain Ruby file. Ruby 3.2. | 3000 |
+| Java | `pom.xml`, `build.gradle` or `build.gradle.kts` | Maven or Gradle, runs the built jar on Java 21. | 8080 |
+| PHP | `composer.json`, `index.php` or `artisan` | Laravel when `artisan` exists, otherwise Apache. PHP 8.2. | 80 |
+| Rust | `Cargo.toml` | Builds a release binary. | 8080 |
+| Single script | One `index.js`, `server.js`, `app.js`, `main.py`, `app.py` or similar, no manifest | Runs the file directly. | 3000 or 8080 |
+| Static HTML | `.html` files and no manifest | Serves the folder. | 8080 |
+
+If nothing matches, the build stops and asks you to add a `Dockerfile`.
+
+For Node.js, Symplax uses the Node version you ask for in `engines.node`, `.nvmrc` or `.node-version`, and Node 20 if you name none. It installs with npm, Yarn or pnpm depending on which lockfile you commit.
+
+<Tip>
+  You can override the detected **Start Command** in your app's **Settings** tab. **Build Command** works for Node.js apps. Both only apply when Symplax writes the Dockerfile; with your own `Dockerfile`, edit the file instead.
+</Tip>
+
+## Port and health check
+
+Symplax picks the port your app listens on in this order:
+
+1. A `PORT` environment variable, if you set one.
+2. The `EXPOSE` line in the Dockerfile, yours or the generated one.
+3. The **Port** in your app's **Settings**.
+4. `3000`.
+
+Your app must listen on `0.0.0.0`, not `localhost`, or Symplax cannot reach it from outside the container.
+
+Before your new version gets traffic, Symplax probes it on that port. By default it tries `/health` first. If that answers with a 2xx or 3xx, it keeps using `/health`. Otherwise it accepts any HTTP response on `/`. The new version must pass three checks in a row within 60 seconds.
+
+To use a specific endpoint, set **Health Check** in **Settings** to a path and the status code it returns, for example `/api/health` and `200`.
+
+## Your free subdomain
+
+Every app gets an address like `my-app.symplax.app`, made from the app name, with HTTPS already working. If the name is taken, Symplax adds a short suffix. The subdomain stays with the app even after you add your own domain. See [Domains and SSL](/apps/domains).
+
+## Auto-deploy on push
+
+When you create an app from GitHub, Symplax registers a webhook on the repository. Every push to the app's branch starts a new deploy. For an app with a root directory, only pushes that change files inside it count. See [Monorepos](/apps/monorepos#which-pushes-deploy-which-app). You can turn this off with the **Auto Deploy** toggle in the app's **CI/CD** tab.
+
+The **CI/CD** tab also has:
+
+- **Branch**: change which branch the app follows.
+- **Concurrent builds**: what happens when a push arrives during a build. **queue** waits, **cancel** stops the running build, **skip** ignores the new push.
+- **Build Filters**: deploy only when certain paths change, or never when only certain paths change. See [Monorepos](/apps/monorepos).
+- **Deploy Hook**: a URL you can `POST` to from any CI tool to start a deploy.
+- **Notifications**: Slack and Discord webhooks.
+
+To deploy only after your tests pass, turn off auto-deploy and run `npx symplax deploy <app>` as the last step of your CI. See the [CLI guide](/cli/ci).
+
+## Zero-downtime swap
+
+Your old version keeps serving while the new one starts. Symplax runs the new image as a separate container, waits for it to pass the health check, then swaps the two and points nginx at the new one. It checks the new container again after the swap. If that check fails, Symplax puts the previous container back. The old container is removed only after the new one has proven stable.
+
+If the new version never passes, nothing changes for your visitors: the previous version stays live.
+
+## Build logs
+
+The deploy view streams every line as it happens, through each phase: preparing, building, delivering the image to your server, starting it, verifying and routing. Errors are highlighted in red. Past deploys are listed in the **History** tab, and your running app's output is in **Logs**.
+
+## When a build fails
+
+Symplax reads the failed build or startup log and, for problems it recognises, shows what went wrong and how to fix it above the logs. It recognises, among others:
+
+- `package-lock.json` or `yarn.lock` out of sync with `package.json`
+- An app that needs a newer Node version than it was given
+- A missing `build` script, or a build tool that was never installed
+- A build that ran out of memory
+- A native module that needs a compiler
+- A `COPY` in the Dockerfile that points outside the root directory
+- A build that tries to reach a database on `localhost`, or a database it cannot resolve
+- Next.js failing to prerender a page
+- A container that crashed on startup, never listened on its port, or returned server errors
+
+On the Pro and Team plans you can also click **Ask Buddy** for an AI explanation of the failure, based on the logs.
+
+<Note>
+  On the Free plan you can deploy 15 times in any 24 hours. Every successful deploy counts, including ones started by a push. Pro and Team have no daily limit.
+</Note>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Environment variables" icon="key" href="/apps/environment-variables">
+    Runtime and build-time variables, and who can see them.
+  </Card>
+  <Card title="Release commands" icon="database" href="/apps/release-commands">
+    Run migrations before the new version starts.
+  </Card>
+  <Card title="Rollbacks" icon="rotate-left" href="/apps/rollbacks">
+    Go back to the previous version in one click.
+  </Card>
+  <Card title="Docker images" icon="docker" href="/apps/docker-images">
+    Deploy a prebuilt image instead of a repository.
+  </Card>
+</CardGroup>

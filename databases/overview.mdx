@@ -1,0 +1,121 @@
+---
+title: "Databases"
+description: "Create a managed database on your own server, connect to it, and attach it to an app."
+icon: "database"
+---
+
+<img src="/images/buddy-database.webp" alt="" width="160" />
+
+A Symplax database runs as its own container on one of your servers, next to your apps. Symplax generates the credentials, keeps the data on a persistent volume, and gives you a connection string to use.
+
+## Engines and versions
+
+| Engine | Versions you can choose | Default |
+| --- | --- | --- |
+| PostgreSQL | 18, 17, 16, 15 | 15 |
+| MySQL | 9, 8.4, 8.0 | 8.4 |
+| MariaDB | 12, 11, 10 | 11 |
+| MongoDB | 8, 7, 6 | 7 |
+| Redis | 8, 7 | 7 |
+| Valkey | 9, 8, 7 | 8 |
+| ClickHouse | 24 | 24 |
+
+<Warning>
+You choose the version when you create the database, and you cannot change it afterwards. A newer engine version refuses an older data directory, so moving to a new version means creating a new database and moving your data across.
+</Warning>
+
+<Note>
+PostgreSQL 18 and MySQL 9 need server agent 2.1.46 or newer. If your server runs an older agent, Symplax refuses to create them and tells you to update the agent or pick an older version.
+</Note>
+
+## Create a database
+
+<Steps>
+  <Step title="Open Databases">
+    Click **Databases** in the sidebar, then **Add Database**.
+  </Step>
+  <Step title="Fill in the form">
+    - **Database name**: a name for the database, for example `my-database`.
+    - **Server**: the server the database runs on. Pick the server your app runs on.
+    - **Engine** and **Version**.
+    - **Inject into app** (optional): an app that should get the connection string. See [Attach a database to an app](#attach-a-database-to-an-app).
+  </Step>
+  <Step title="Create it">
+    Click **Create Database**. Symplax pulls the image, creates the container and runs health checks. The database shows as **Running** when it is ready.
+  </Step>
+</Steps>
+
+You do not set a username or password. Symplax generates a random password for every database and stores it encrypted.
+
+## Where your data lives
+
+Each database keeps its data on a Docker volume on your server. The data survives restarts of the container and of the server. Stopping a database from **Settings** keeps all of its data, and **Start Database** brings it back.
+
+**Delete Database** in **Settings** removes the container and its volume. This deletes all of the data and cannot be undone. Take a [backup](/databases/backups) and download it first if you might need it.
+
+## Connection details
+
+Open a database to see **Connection Details** on its **Overview** tab: host, port, database name, username and password, plus two connection URLs.
+
+- **APP URL (internal)**: use this inside an app deployed on the **same server**. It points at the database's container name on Symplax's private network, so it only works from that server.
+- **URL**: the public connection string, for your laptop or tools like TablePlus, pgAdmin or DBeaver. It appears only while [public access](/databases/public-access) is on, because the port is closed to the internet otherwise.
+
+<Warning>
+Do not use the public URL inside an app on the same server. Apps on that server cannot reach the database through the server's public IP. Use the internal URL instead.
+</Warning>
+
+**Quick Connect** on the same tab shows ready-to-copy snippets for common clients, such as Prisma, `pg`, `psycopg2` and `ioredis`.
+
+### Who can see the password
+
+The password and both connection URLs are shown only to:
+
+- the owner of the workspace,
+- team admins,
+- the person who created the database, while their role still lets them manage it.
+
+Everyone else with access to the database sees the host, port and database name, and can still use the database through the dashboard. API keys need the `secrets:read` scope to read a password.
+
+## Attach a database to an app
+
+Symplax can write the connection string into an app's environment variables for you. In the database's **Overview** tab, find **Linked Apps**, select the app and click **Inject**. You can also pick the app in **Inject into app** when you create the database.
+
+The variable name depends on the engine:
+
+| Engine | Variable |
+| --- | --- |
+| PostgreSQL | `DATABASE_URL` |
+| MySQL, MariaDB | `MYSQL_URL` |
+| MongoDB | `MONGODB_URL` |
+| Redis | `REDIS_URL` |
+| ClickHouse | `CLICKHOUSE_URL` |
+
+If the app is on the same server as the database, it gets the internal URL. If it is on a different server, it gets the public URL, and you need to turn on [public access](/databases/public-access) for the app to connect.
+
+<Note>
+Injecting overwrites a variable with the same name if the app already has one. Redeploy the app afterwards so it picks up the new value.
+</Note>
+
+## How many databases you can have
+
+| Plan | Databases |
+| --- | --- |
+| Free | 2 |
+| Pro | 5 |
+| Team | Unlimited |
+
+The limit counts every database you have created, across all your servers. Deleting a database frees its slot. See [Plans](/billing/plans) for everything else each plan includes.
+
+## Next steps
+
+<CardGroup cols={3}>
+  <Card title="Console" icon="terminal" href="/databases/console">
+    Browse tables, keys and documents from the dashboard.
+  </Card>
+  <Card title="Backups" icon="box-archive" href="/databases/backups">
+    Back up on demand or on a schedule, and restore.
+  </Card>
+  <Card title="Public access" icon="lock-open" href="/databases/public-access">
+    Connect from your laptop or another host.
+  </Card>
+</CardGroup>

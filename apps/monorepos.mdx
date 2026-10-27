@@ -1,0 +1,81 @@
+---
+title: "Monorepos"
+description: "Deploy several apps from one repository with a root directory, a Dockerfile path and build filters."
+---
+
+A monorepo is one repository holding several apps, such as `apps/web` and `apps/api`. In Symplax each of those is its own app: one container, one server, its own variables and domain. You create one app per folder, all pointing at the same repository.
+
+## Deploy an app from a subfolder
+
+<Steps>
+  <Step title="Pick the repository">
+    Go to **Apps**, click **Deploy App**, choose **Git repository** and pick your repository and branch.
+  </Step>
+  <Step title="Choose the folder">
+    Symplax scans the repository and lists the folders it can deploy. Click one, or type a path in **Root directory**, for example `apps/web`. Leave it empty for the repository root.
+  </Step>
+  <Step title="Deploy">
+    Finish the remaining steps and click **Start Deployment**.
+  </Step>
+  <Step title="Repeat for each app">
+    Run **Deploy App** again with the same repository and a different root directory. Each app gets its own subdomain.
+  </Step>
+</Steps>
+
+You can change the root directory later in the app's **Settings** tab.
+
+## Root directory and Dockerfile path
+
+These two settings in **Settings** do different jobs:
+
+| Setting | What it means | Example |
+| --- | --- | --- |
+| **Root Directory** | The build context: the only files your build can see. Symplax also looks for a `Dockerfile` here, and runs stack detection here if there is none. | `apps/web` |
+| **Dockerfile Path** | Where your Dockerfile is, counted from the top of the repository. Only needed when it sits outside the root directory. | `apps/web/Dockerfile` |
+
+The common case for both: a workspace where `apps/web` imports code from `packages/shared`. A build with `apps/web` as its root directory cannot see `packages/`, so a `COPY packages/shared ...` fails. Set **Root Directory** to the repository root, so the whole repository is visible, and **Dockerfile Path** to `apps/web/Dockerfile`.
+
+<Tip>
+  If a `COPY` in your Dockerfile names a path the build cannot see, the failed deploy says so and points at the root directory. See [When a build fails](/apps/deploy-from-github#when-a-build-fails).
+</Tip>
+
+## Which pushes deploy which app
+
+Every app that follows a branch has its own webhook check. When you push, Symplax looks at the files changed in the push and decides per app:
+
+- **An app with a root directory** deploys only if the push changed a file inside that folder.
+- **An app at the repository root** deploys on every push to its branch.
+
+<Warning>
+  A change outside an app's root directory does not deploy it. If `apps/web` depends on a root lockfile or on `packages/shared`, a push that only touches those leaves `apps/web` on its old build. Redeploy it by hand, or set watch paths as below.
+</Warning>
+
+You can tune this further in the app's **CI/CD** tab, under **Build Filters**:
+
+- **Watch paths**: deploy only when a file in one of these paths changes. Add `packages/shared` here to rebuild `apps/web` when the shared code changes.
+- **Ignored paths**: skip the deploy when every changed file is in one of these paths, for example `docs`.
+
+<Note>
+  Watch paths are checked in addition to the root directory filter, not instead of it. For an app whose root directory is `apps/web`, a push must still touch a file in `apps/web` before watch paths are considered. To deploy on changes anywhere in the listed paths, set the root directory to the repository root and use **Dockerfile Path** as described above.
+</Note>
+
+## Docker Compose files
+
+Symplax runs one app per deployment and is not an orchestrator. It can still read a compose file when that file describes the common shape: **one app plus its databases**.
+
+Pick **Docker Compose** as the deployment source and choose your repository. Symplax looks for `docker-compose.yml`, `docker-compose.yaml`, `compose.yml` or `compose.yaml` in the root directory. If the file lives in a subfolder, put that folder in **Root directory**.
+
+When the file fits, Symplax builds the app service from your repository, provisions each database service as a managed database, and wires the connection details into the app's environment. Recognised databases are PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Valkey and ClickHouse.
+
+Symplax refuses the file, and names the services responsible, when:
+
+- It has more than one service that is not a database.
+- The app service runs a prebuilt image instead of building from the repository. Use [Docker image](/apps/docker-images) for that.
+- It describes more than four databases.
+- Every service is a database.
+
+For a file with several app services, deploy each one as its own app with the same repository and its own root directory, and point them at the same database.
+
+## Importing a monorepo
+
+The Railway, DigitalOcean and Vercel importers create one Symplax app per service, often several from one repository, with the right root directory already set. See [Import from Railway](/import/railway).

@@ -1,0 +1,81 @@
+---
+title: "Server monitoring"
+description: "See CPU, memory and disk usage for your servers, how long history is kept, and which alerts Symplax sends."
+---
+
+Every server you connect or buy reports its resource usage to Symplax through the agent. There is nothing to configure.
+
+## What is measured
+
+The agent reports these figures, as percentages of the server's total:
+
+- **CPU** usage
+- **Memory** usage
+- **Disk** usage
+
+It also reports network traffic in and out, per-container Docker stats, and the server's operating system, CPU cores, memory and disk size, which appear on the server page.
+
+## Where to see it
+
+<CardGroup cols={2}>
+  <Card title="Dashboard" icon="chart-line">
+    **Resource Usage Over Time** charts CPU across your servers, with **1H**, **24H** and **7D** views. The **Uptime** card shows the share of your servers that are online right now.
+  </Card>
+  <Card title="Servers page" icon="server">
+    **Avg CPU**, **Avg RAM** and **Avg Disk** across all servers, plus each server's own CPU, RAM and disk usage on its card.
+  </Card>
+  <Card title="Server page" icon="gauge">
+    The **Overview** tab shows CPU, memory and disk for that server, its connection details, and **Last Seen**, the last time the agent checked in.
+  </Card>
+  <Card title="Maintenance" icon="broom">
+    The server's **Maintenance** tab shows root disk usage, reclaimable Docker space and build cache. **Cleanup** removes build cache, dangling images and stopped containers, never running apps or volumes.
+  </Card>
+</CardGroup>
+
+The dashboard updates live while you have it open.
+
+## History
+
+Symplax saves a data point for each server at most every 10 seconds.
+
+| What | How long |
+| --- | --- |
+| Charts you can view | Up to the last 7 days |
+| Stored metric history | 14 days, then deleted |
+
+There is no long-term history beyond that. If you need months of data, run your own monitoring stack on the server.
+
+## Online and offline
+
+A server counts as online while its agent keeps reporting. If Symplax hears nothing for about 90 seconds, it marks the server **offline**.
+
+Symplax doesn't ping your server from outside. Offline means the agent stopped reporting, which can be because the machine is down, the agent stopped, or the server lost its outbound internet connection.
+
+<Note>
+This is about the server itself. To check that your app's public URL responds, see [uptime monitoring](/apps/uptime-monitoring).
+</Note>
+
+## Alerts
+
+These alerts exist today:
+
+| Alert | When it fires | How often at most |
+| --- | --- | --- |
+| **Server Offline** | The agent stops reporting | Once an hour per server |
+| **Server Online** | A server you were alerted about comes back | Once per recovery |
+| **Memory Alert** | An app's container reaches 85% memory use, as Docker reports it | Once an hour per app |
+| **Docker Cleanup Needed** | A server has 3 GB or more of reclaimable Docker space | Once a day per server |
+
+Offline and online alerts always appear as dashboard notifications, and are also emailed. Memory alerts are email only. Docker cleanup alerts arrive as an email and a notification. Every email here, and the cleanup notification, follows your **Server Alerts** setting below.
+
+<Note>
+No offline alert is sent for a [bought server](/servers/buy-a-server) paused because your wallet ran out. You get the pause notice instead.
+</Note>
+
+### Turn email alerts on or off
+
+Go to **Settings**, find **Notification Preferences**, and switch **Server Alerts**. It is on by default.
+
+<Warning>
+There are no alerts for high CPU or a filling disk yet. Check the dashboard, or watch disk usage on the server page, especially on servers with many images or large databases.
+</Warning>

@@ -1,0 +1,84 @@
+---
+title: "Database backups"
+description: "Back up a database on demand or on a schedule, download a backup, and restore from it."
+---
+
+<img src="/images/buddy-backups.webp" alt="" width="160" />
+
+Symplax can back up any database you create. Backups are stored off your server in storage that Symplax manages, so you do not need your own bucket or storage account.
+
+<Note>
+Database backups are included on the Pro and Team plans. They are not available on Free. See [Plans](/billing/plans).
+</Note>
+
+## What a backup contains
+
+Symplax uses each engine's own dump tool, run on your server by the Symplax agent, then compresses and uploads the result.
+
+| Engine | How it is backed up | Download format |
+| --- | --- | --- |
+| PostgreSQL | `pg_dump` | `.sql.gz` |
+| MySQL, MariaDB | `mysqldump` / `mariadb-dump`, including routines and triggers | `.sql.gz` |
+| MongoDB | `mongodump` | `.archive.gz` |
+| Redis, Valkey | A snapshot of the dataset (`BGSAVE`) | `.rdb.gz` |
+| ClickHouse | ClickHouse's native `BACKUP DATABASE` | `.zip` |
+
+## Back up now
+
+<Steps>
+  <Step title="Open the Backups tab">
+    Open the database from **Databases** and go to **Backups**.
+  </Step>
+  <Step title="Start the backup">
+    Click **Back Up Now**. You can add a note, for example `before deploying v2`, so you can find it later.
+  </Step>
+  <Step title="Wait for it to finish">
+    The backup runs in the background and shows as **In Progress**, then **Completed** or **Failed**.
+  </Step>
+</Steps>
+
+<Tip>
+Take a backup right before a risky migration or a bulk change from the [console](/databases/console).
+</Tip>
+
+## Scheduled backups
+
+Use the schedule menu next to **Back Up Now** to choose **Daily**, **Weekly** or **Monthly**. Choose **No schedule** to turn scheduled backups off.
+
+- **Daily** runs every night.
+- **Weekly** runs every Sunday.
+- **Monthly** runs on the 1st of the month.
+
+Scheduled backups only run while the database is running. A stopped database is skipped.
+
+## How long backups are kept
+
+Each backup is kept for 30 days and then deleted automatically. Symplax never deletes the most recent completed backup of a database, even after 30 days, so you always have at least one.
+
+A backup that never finishes is marked **Failed** after 24 hours. You can delete any backup yourself from its row.
+
+## Download a backup
+
+Click the download icon on a backup to get a download link. The link works for one hour. Use the file to keep your own copy, or to restore into a database somewhere else.
+
+## Restore a backup
+
+<Steps>
+  <Step title="Pick the backup">
+    In **Backups**, click the restore icon on a completed backup.
+  </Step>
+  <Step title="Confirm">
+    Click **Yes, overwrite & restore**. The **Data** tab shows the restore in progress, and a message tells you when it has completed or failed.
+  </Step>
+</Steps>
+
+<Warning>
+Restoring overwrites all current data in the database with the contents of the backup. Anything written after the backup was taken is lost. Take a fresh backup first if you might need the current data.
+</Warning>
+
+A restore goes back into the same database. PostgreSQL, MySQL and MariaDB replay the dump into it. MongoDB drops each collection in the backup and restores it. ClickHouse drops the database and restores it. Redis and Valkey stop the container briefly, load the snapshot and start again, so expect a short interruption for apps using them.
+
+## Before you rely on backups
+
+- Backups and restores time out after five minutes of dumping or loading. Very large databases may not fit in that window.
+- A restore always goes back into the database the backup came from. To test a backup without touching that database, download it and load it into a local copy of the engine.

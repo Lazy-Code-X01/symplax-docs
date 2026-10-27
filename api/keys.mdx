@@ -1,0 +1,62 @@
+---
+title: "API keys"
+description: "Create scoped API keys that let scripts, CI and AI assistants work with your apps, databases and servers."
+icon: "key"
+---
+
+An API key acts as you, in one workspace, and can only do what you allowed when you made it.
+It never does more than your own role allows in that workspace.
+
+## Create a key
+
+Go to **Settings**, **API Keys** and click **Create Key**. Give it a name, pick the workspace,
+tick what it may do, and choose when it expires: 30, 90 or 365 days, or never. The key is shown
+once, so copy it then.
+
+<Warning>
+  Treat a key like a password. Keep it in an environment variable or your CI's secret store,
+  never in code. If one leaks, revoke it in **Settings**, **API Keys** and it stops working on
+  the next request.
+</Warning>
+
+Free accounts can have 2 keys at a time, Pro and Team accounts 10. A key does not get around
+your plan: it acts as you, so every plan limit still applies. You get an email a week before a
+key expires.
+
+## Make a request
+
+The base URL is `https://api.symplax.com/api`. Send the key as a bearer token:
+
+```bash
+curl https://api.symplax.com/api/deployments \
+  -H "Authorization: Bearer $SYMPLAX_API_KEY"
+```
+
+Lists come back wrapped in a named field, such as `{ "deployments": [ ... ] }`.
+
+## Scopes
+
+| Scope | Allows |
+| --- | --- |
+| `apps:read` | List apps, app details, deploy history, environment variable names, cron jobs |
+| `apps:deploy` | Redeploy, restart, retry and roll back |
+| `apps:write` | Create an app and change its settings and environment variables |
+| `logs:read` | An app's runtime logs |
+| `databases:read` | Databases and their status, backups and logs, without passwords |
+| `databases:write` | Create, start, stop and back up a database, link it to an app |
+| `servers:read` | Servers and their metrics |
+| `secrets:read` | Environment variable values and database passwords |
+
+Without `secrets:read`, environment variables come back with masked values and databases
+without passwords, even if you could see them yourself. Leave it off unless the job needs it.
+
+No key can delete anything, or use sign-in, billing, teams, SSH keys or other API keys.
+
+## Workspaces
+
+A key works in one workspace: your personal one or a team. It only sees that workspace's apps,
+databases and servers. A team key stops working the moment the person who made it leaves the
+team, and follows their role if it changes. Team owners and admins can revoke any of their
+team's keys.
+
+Every change a key makes shows up in your activity log with the key's name.

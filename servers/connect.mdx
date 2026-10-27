@@ -1,0 +1,143 @@
+---
+title: "Connect a server"
+description: "Connect a VPS you already own to Symplax over SSH so you can deploy apps and databases on it."
+icon: "server"
+---
+
+<img src="/images/buddy-server.webp" alt="" width="160" />
+
+You can connect any Linux VPS you can reach over SSH. Symplax logs in once, installs its agent, and prepares the server for apps and databases. There is nothing to run on the server yourself.
+
+If you don't have a server yet, you can [buy one through Symplax](/servers/buy-a-server) instead.
+
+## Before you start
+
+You need:
+
+- The server's **public IP address or domain**.
+- An SSH login that is **root**, or a user with **passwordless sudo** (`NOPASSWD` in sudoers). Sudo that asks for a password is not supported.
+- Either that user's **password** or a **private key** that can log in.
+- The SSH port open to the internet. If your cloud provider has its own firewall or security group, allow your SSH port there.
+- Outbound internet access from the server, so it can download packages and talk to Symplax.
+
+<Note>
+Your plan sets how many servers you can have. Servers you connect and servers you buy both count. See [plans](/billing/plans).
+</Note>
+
+### Supported operating systems
+
+Setup works on systemd-based distributions that use one of these package managers:
+
+| Family | Examples | Package manager |
+| --- | --- | --- |
+| Debian | Ubuntu, Debian | `apt` |
+| Red Hat | AlmaLinux, Rocky Linux, CentOS Stream, Fedora | `dnf` or `yum` |
+
+Use a release that still receives updates. Ubuntu LTS is the safest choice, and it is what [Symplax-provisioned servers](/servers/buy-a-server) run.
+
+<Warning>
+Releases past end of life do not work. Their package repositories stop serving, so Docker and nginx cannot be installed and setup fails. Debian 10 and 11, and CentOS 7 and 8, are common examples. Upgrade the server first.
+</Warning>
+
+## Connect your server
+
+<Steps>
+  <Step title="Open the connect form">
+    Go to **Servers**, click **New Server**, then choose **Connect existing server**.
+  </Step>
+  <Step title="Enter the connection details">
+    Fill in **Server name**, **IP address or domain** and **SSH username** (defaults to `root`).
+
+    Under **Authentication**, pick **Password** or **SSH Key**. For a key, choose one of your account keys from the list or paste a private key.
+
+    If SSH listens on a port other than 22, open **Show Advanced Settings** and set **SSH Port**.
+  </Step>
+  <Step title="Verify the connection">
+    Click **Continue**. Symplax logs in and checks that the user is root or has passwordless sudo. Fix any error shown before you go on.
+  </Step>
+  <Step title="Connect">
+    Review the summary and click **Connect Server**. Symplax installs the agent and starts setting up the server.
+  </Step>
+</Steps>
+
+When it finishes, the server appears in your list and starts reporting [metrics](/servers/monitoring). From there you can [deploy an app](/apps/deploy-from-github).
+
+## What Symplax sets up
+
+The agent is a small Python service, `symplax-agent`, installed under `/opt/symplax-agent` and run by systemd. Once it is running, it sets up the rest of the server.
+
+<AccordionGroup>
+  <Accordion title="Software it installs">
+    - Docker (with the buildx plugin), using Docker's install script with a distribution package as a fallback.
+    - nginx, used as the reverse proxy in front of your apps.
+    - certbot, for Let's Encrypt certificates on custom domains.
+    - git, curl and a cron daemon, which is also enabled so cron jobs run.
+    - Python 3, if the server doesn't already have it.
+  </Accordion>
+  <Accordion title="Security hardening">
+    - A firewall (UFW, or firewalld on Red Hat family systems) that allows your SSH port, 80 and 443, and keeps open any port that was already publicly listening before you connected.
+    - Fail2Ban, watching SSH logins.
+    - On password connections, your account's managed SSH key is added to the user's `~/.ssh/authorized_keys`, so Symplax can use the key from then on.
+
+    See [firewall](/security/firewall) and [SSH keys](/security/ssh-keys) for the details.
+  </Accordion>
+  <Accordion title="System changes">
+    - A 2 GB swap file at `/swapfile`, if one doesn't exist.
+    - The kernel options `cgroup_enable=memory swapaccount=1` added to GRUB, so memory limits on containers work. A reboot is needed for this to take effect.
+    - A Docker network called `symplax_net` that your apps and databases join.
+    - A self-signed origin certificate for `*.symplax.app` under `/etc/nginx/ssl/symplax.app`.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+Reboot the server once setup completes so the kernel memory option takes effect.
+</Tip>
+
+<Note>
+Symplax doesn't turn off SSH password logins or change your SSH configuration on a server you connect. If you used a password, it is stored encrypted and kept as a fallback, with the SSH key tried first.
+</Note>
+
+## Removing a server
+
+Owners and admins can remove a server from the server's **Settings** tab, under **Danger Zone**, with **Remove Server**. Symplax stops and removes the agent, its systemd service, `/opt/symplax-agent` and `/var/www/apps`. The machine itself keeps running, and Docker and nginx stay installed.
+
+<Warning>
+For a server you bought through Symplax, the button reads **Destroy Server**. It deletes the machine and everything on it, and stops its billing.
+</Warning>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="SSH connection timed out">
+    Symplax couldn't reach the SSH port.
+
+    - Check the IP address and the SSH port.
+    - Make sure the server is running.
+    - Allow the SSH port in your cloud provider's firewall or security group.
+    - Test from your own machine: `ssh root@your-server-ip`.
+  </Accordion>
+  <Accordion title="All configured authentication methods failed">
+    The server rejected the login.
+
+    - Check the username, password or key.
+    - Some providers disable password logins by default. Use an SSH key instead.
+    - Paste the **private** key, not the `.pub` file.
+  </Accordion>
+  <Accordion title="Symplax needs root or passwordless sudo access">
+    The user logged in but can't run commands as root without a password. Connect as `root`, or give the user passwordless sudo, for example with this line in `sudo visudo`:
+
+    ```text
+    youruser ALL=(ALL) NOPASSWD:ALL
+    ```
+  </Accordion>
+  <Accordion title="Core setup incomplete: could not install docker or nginx">
+    The agent installed but couldn't install the essentials. The usual cause is an operating system past end of life. Run `apt-get update` (or `dnf check-update`) on the server: if it reports expired or missing repositories, upgrade to a supported release.
+
+    Otherwise, check that the server has outbound internet access and runs a supported distribution.
+  </Accordion>
+  <Accordion title="A service I already ran stopped being reachable">
+    The firewall keeps ports that were publicly listening at the moment you connected. A service that was stopped then, or that binds a new port later, needs its port allowed by hand, for example `ufw allow 8080/tcp`.
+  </Accordion>
+</AccordionGroup>
+
+Still stuck? Use the **Feedback** button in your dashboard or reach us on X at [@symplaxhq](https://x.com/symplaxhq).

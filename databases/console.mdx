@@ -1,0 +1,86 @@
+---
+title: "Database console"
+description: "Browse and edit your data, and run queries, from the database page in the dashboard."
+---
+
+Every database page has tools for working with your data without installing a client or opening a port. They work through the Symplax agent on your server, so they do not need [public access](/databases/public-access).
+
+Open a database from **Databases**. The tabs you see depend on the engine:
+
+| Tab | Engines | What it does |
+| --- | --- | --- |
+| **Data** | All | Browse tables, collections or keys |
+| **Console** | PostgreSQL, MySQL, MariaDB, ClickHouse, MongoDB | Run queries or commands |
+| **Query Log** | ClickHouse | Recent queries with duration and rows read |
+| **Variables** | Redis, Valkey | The server's runtime configuration |
+| **Logs** | All | The database container's logs |
+
+<Note>
+**Data**, **Console**, **Query Log** and **Variables** need the database to be running. If it is stopped, start it from the **Settings** tab.
+</Note>
+
+## By engine
+
+<Tabs>
+  <Tab title="PostgreSQL, MySQL, MariaDB">
+    **Data** lists your tables. Select one to:
+
+    - page through its rows,
+    - filter rows by column with **Filter rows** (equals, contains, less than, is empty, and so on),
+    - add, edit and delete rows with **Add Record** and the row actions,
+    - see its columns,
+    - download it with **Export CSV**,
+    - drop it.
+
+    **Create Table** opens a form where you name the table and define its columns, including primary key and not null. PostgreSQL also offers foreign keys; MySQL and MariaDB offer auto increment.
+
+    **Console** is a SQL editor. Type a query and press `Cmd+Enter` (or `Ctrl+Enter`) to run it. Results appear as a table, and **Recent queries** keeps your history.
+  </Tab>
+  <Tab title="ClickHouse">
+    **Data** lists tables across your ClickHouse databases, with a preview of rows and the table's schema. **Create Table** lets you pick the table engine (MergeTree, ReplacingMergeTree, SummingMergeTree, AggregatingMergeTree, Memory or TinyLog) and the order-by columns.
+
+    **Export CSV** downloads a table. Exports stop at the first 10,000 rows.
+
+    **Console** is a SQL editor. Qualify table names with their database, for example `SELECT * FROM default.my_table LIMIT 10`. **Query Log** shows recent queries with their duration, rows and bytes read, and any exception.
+  </Tab>
+  <Tab title="MongoDB">
+    **Data** lists your collections. You can create and drop collections, and for each collection:
+
+    - filter documents with a JSON filter,
+    - add a document with **Add Document**,
+    - edit or delete a document,
+    - view a document as JSON.
+
+    **Console** runs a database command, the same as `db.runCommand(...)` in the Mongo shell. Write the command as JSON, for example `{ "dbStats": 1 }`, or start from a preset such as `buildInfo`, `dbStats`, `listCollections`, `currentOp` or `serverStatus`.
+  </Tab>
+  <Tab title="Redis, Valkey">
+    **Data** is a key browser. You can:
+
+    - search keys and filter them by type,
+    - open a key to see its value and its remaining TTL,
+    - edit the value of a string key,
+    - delete a key,
+    - add a key of type string, list, set or hash.
+
+    There is no free-form command console for Redis or Valkey. **Variables** shows the server's configuration, read only.
+  </Tab>
+</Tabs>
+
+## Safety limits
+
+The console blocks or confirms commands that could destroy data by accident:
+
+- In SQL consoles for PostgreSQL, MySQL and MariaDB, `DROP TABLE`, `TRUNCATE` and `DROP SCHEMA` ask you to confirm before they run.
+- `DROP DATABASE` is never allowed from the console.
+- In MongoDB, `dropDatabase`, `shutdown`, `dropAllUsersFromDatabase` and `dropAllRolesFromDatabase` are refused.
+- For Redis and Valkey, `FLUSHALL`, `SHUTDOWN` and `CONFIG` commands are refused.
+
+You can run up to 60 queries a minute from the console.
+
+<Tip>
+Before running a migration or bulk change by hand, take a backup from the **Backups** tab. See [Backups](/databases/backups).
+</Tip>
+
+## Connecting your own client
+
+If you prefer a desktop client such as TablePlus, DBeaver or pgAdmin, turn on [public access](/databases/public-access) for a limited time and use the public URL from the **Overview** tab.

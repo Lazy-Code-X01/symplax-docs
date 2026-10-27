@@ -1,0 +1,90 @@
+---
+title: "Firewall"
+description: "The firewall and brute-force protection Symplax sets up on every server, and how database ports are kept private."
+---
+
+When you [connect](/servers/connect) or [buy](/servers/buy-a-server) a server, Symplax turns on a firewall and Fail2Ban as part of setup. You don't need to configure either.
+
+## The firewall
+
+Symplax uses the firewall your distribution ships with:
+
+- **UFW** on Ubuntu and Debian.
+- **firewalld** on AlmaLinux, Rocky Linux, CentOS Stream and Fedora.
+
+If neither is installed, setup skips the firewall and logs a warning.
+
+### What is allowed
+
+| Port | Why |
+| --- | --- |
+| Your SSH port | So you and Symplax can log in. Symplax reads the port from `sshd_config` and from the port you connected on, so a custom port is never locked out. |
+| `80` | HTTP traffic to your apps through nginx |
+| `443` | HTTPS traffic to your apps through nginx |
+| Ports already in use | Any TCP or UDP port that was listening on a public address when setup ran |
+
+Traffic from Docker's bridge network is also allowed, so containers keep working behind the firewall.
+
+Every other incoming port is closed.
+
+<Note>
+Symplax keeps ports that were already publicly listening when you connected, so a VPN, game server or other service you were already running stays reachable. Setup logs which ports it left open. Services bound to `127.0.0.1` stay private, as they were before.
+</Note>
+
+### Apps don't need extra ports
+
+Your apps are reached through nginx on ports 80 and 443, using their `*.symplax.app` subdomain or a [custom domain](/apps/domains). Deploying an app doesn't open any new firewall port.
+
+### Opening a port yourself
+
+If you start a new service on another port after setup, allow it yourself from SSH or the [console](/servers/console):
+
+<CodeGroup>
+```bash UFW
+ufw allow 8080/tcp
+```
+
+```bash firewalld
+firewall-cmd --permanent --add-port=8080/tcp
+firewall-cmd --reload
+```
+</CodeGroup>
+
+<Warning>
+Don't remove the rules for your SSH port, 80 or 443. Without SSH, Symplax can't reach the server. Without 80 and 443, your apps go offline.
+</Warning>
+
+## Fail2Ban
+
+Symplax installs Fail2Ban and turns on its SSH jail with these settings:
+
+| Setting | Value |
+| --- | --- |
+| Watches | Your SSH port or ports |
+| Failed logins before a ban | 5 |
+| Ban length | 1 hour |
+| Never banned | `127.0.0.1`, `::1` and Symplax's own servers |
+
+Symplax's addresses are excluded so that a few failed logins can never lock Symplax out of a server it manages. The config is written to `/etc/fail2ban/jail.local`.
+
+If you lock yourself out from your own IP, wait an hour for the ban to lift, or use the [console](/servers/console), which connects from Symplax and isn't affected.
+
+## Database ports
+
+Databases work differently. A database container publishes its port through Docker, and Docker's port publishing bypasses UFW rules. So Symplax doesn't rely on UFW for databases. It adds its own `iptables` rules for each database port:
+
+- **Private (the default):** only Symplax can reach the port. Your apps on the same server connect over the internal Docker network, not this port.
+- **Public with an allowlist:** only the IP addresses you list, plus Symplax, can connect. Up to 10 addresses per database.
+- **Public to everyone:** any address can connect.
+
+When you turn public access on, you choose how long it lasts: **1 hour**, **24 hours** (the default), **7 days**, or **Never**. About an hour before it expires, you get a notification. When it expires, the database goes back to private on its own.
+
+The agent re-applies every database's stored setting when it starts, so a rule that went missing is put back.
+
+<Card title="Database public access" icon="globe" href="/databases/public-access">
+  Turn public access on, manage the IP allowlist and pick an expiry.
+</Card>
+
+<Warning>
+A rule you add with `ufw` does not open or close a database port, because Docker bypasses UFW. Use the public access setting on the database instead.
+</Warning>

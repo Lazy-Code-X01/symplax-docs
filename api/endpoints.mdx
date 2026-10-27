@@ -1,0 +1,80 @@
+---
+title: "Endpoints"
+description: "Every API endpoint an API key can call, and the scope each one needs."
+---
+
+Base URL: `https://api.symplax.com/api`. Any route not listed here is refused to API keys.
+
+## Account
+
+| Method | Path | Scope |
+| --- | --- | --- |
+| GET | `/me` | any key |
+
+`/me` says who a key belongs to, its name, scopes, workspace and expiry.
+
+## Apps
+
+| Method | Path | Scope |
+| --- | --- | --- |
+| GET | `/deployments` | `apps:read` |
+| GET | `/deployments/:id` | `apps:read` |
+| GET | `/deployments/:id/env-vars` | `apps:read` |
+| GET | `/deployments/:id/cron-jobs` | `apps:read` |
+| GET | `/deployments/:id/domain-status` | `apps:read` |
+| GET | `/deployments/:id/linked-databases` | `apps:read` |
+| GET | `/deployments/:id/branches` | `apps:read` |
+| GET | `/deployments/:id/executions/:executionId?after=LOG_ID` | `apps:read` |
+| POST | `/deployments/:id/redeploy` | `apps:deploy` |
+| POST | `/deployments/:id/restart` | `apps:deploy` |
+| POST | `/deployments/:id/retry` | `apps:deploy` |
+| POST | `/deployments/:id/rollback` | `apps:deploy` |
+| POST | `/deployments` | `apps:write` |
+| PATCH | `/deployments/:id` | `apps:write` |
+| GET | `/deployments/:id/logs?tail=200` | `logs:read` |
+
+### Follow a deploy
+
+`POST /deployments/:id/redeploy` returns an `executionId`. Poll
+`GET /deployments/:id/executions/:executionId`, passing the id of the last log line you saw as
+`after`, to get the deploy's status and only the new log lines:
+
+```json
+{
+  "execution": { "status": "BUILDING", "finished": false, "failedPhase": null },
+  "logs": [{ "id": "...", "message": "Installing dependencies", "level": "info" }],
+  "url": "https://my-api.symplax.app"
+}
+```
+
+The status moves through `PREPARING`, `BUILDING` or `PULLING`, `DELIVERING` and `VERIFYING`,
+and ends as `SUCCESS` or `FAILED`.
+
+### Read logs
+
+`GET /deployments/:id/logs?tail=100` returns `{ "container": "...", "lines": [ ... ] }`. It asks
+your server for the logs and waits for the answer, up to about 20 seconds.
+
+## Databases
+
+| Method | Path | Scope |
+| --- | --- | --- |
+| GET | `/databases` | `databases:read` |
+| GET | `/databases/:id` | `databases:read` |
+| GET | `/databases/:id/linked-apps` | `databases:read` |
+| GET | `/databases/:id/logs` | `databases:read` |
+| GET | `/databases/:id/backups` | `databases:read` |
+| POST | `/databases` | `databases:write` |
+| POST | `/databases/:id/start` | `databases:write` |
+| POST | `/databases/:id/stop` | `databases:write` |
+| POST | `/databases/:id/backups` | `databases:write` |
+| POST | `/databases/:id/link-app` | `databases:write` |
+
+## Servers
+
+| Method | Path | Scope |
+| --- | --- | --- |
+| GET | `/servers` | `servers:read` |
+| GET | `/servers/:id` | `servers:read` |
+| GET | `/servers/:id/metrics` | `servers:read` |
+| GET | `/servers/metrics-batch?ids=ID1,ID2&timeRange=24h` | `servers:read` |

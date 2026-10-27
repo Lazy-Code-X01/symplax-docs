@@ -1,0 +1,79 @@
+---
+title: "Release commands"
+description: "Run database migrations or other one-off tasks from your new image before the new version starts."
+---
+
+A release command runs once per deploy, before your new version starts. Use it for database migrations, so the schema is ready by the time the new code boots.
+
+```bash
+npx prisma migrate deploy
+```
+
+## Set a release command
+
+You can set it in two places:
+
+- In the **Environment** step of **Deploy App**, so it runs on the very first deploy.
+- In your app's **Settings** tab, under **Release Command**. Click **Save**, and it runs on the next deploy.
+
+To stop using it, clear the field and save.
+
+For some stacks Symplax suggests a command you can click to fill in:
+
+| Stack | Suggested command |
+| --- | --- |
+| Node.js | `npx prisma migrate deploy` |
+| Python | `python manage.py migrate` (Django) |
+| Laravel | `php artisan migrate --force` |
+
+Only use a suggestion if it matches your project.
+
+## When it runs
+
+During a deploy, after the new image has reached your server:
+
+<Steps>
+  <Step title="Release command">
+    Symplax runs your command in a one-off container from the **new** image. It gets the same environment variables, volumes and network as your app, so it can reach your Symplax databases. The container is removed when the command finishes.
+  </Step>
+  <Step title="New version starts">
+    Only if the command succeeded, Symplax starts the new version alongside the old one.
+  </Step>
+  <Step title="Health check and swap">
+    The new version is health checked, then swapped in. See [Zero-downtime swap](/apps/deploy-from-github#zero-downtime-swap).
+  </Step>
+</Steps>
+
+Running first matters for apps that check their database when they boot. If migrations ran after startup, an app that cannot start without them would crash before its migrations ever ran.
+
+<Warning>
+  Your old version is still serving traffic while the release command runs. Write migrations that the old code can live with for a minute, such as adding a column before you start using it, rather than renaming or dropping one the old code still reads.
+</Warning>
+
+## If it fails
+
+A release command fails if it exits with a non-zero code or runs longer than 300 seconds. Then:
+
+- The deploy stops. The new version is never started.
+- Your previous version, if there is one, keeps serving traffic.
+- The deploy is marked failed, with the command's output in the deploy log.
+
+Fix the command or the migration and deploy again.
+
+## Reading its output
+
+The command's output appears in the deploy log, up to 200 lines. Symplax also reads it for signs of trouble:
+
+- It printed nothing: Symplax warns you, in case the command does not exist in the image.
+- It exited with `0` but printed errors, such as `ERROR`, `not found` or `No migration`: the deploy continues, and Symplax tells you to check the output before trusting the deploy.
+
+## Details
+
+- The command runs with `sh -c`, bypassing your image's own entrypoint. Chain steps with `&&`.
+- It runs on every deploy, including auto-deploys from a push. Make it safe to run more than once, as migration tools normally are.
+- It does not run on a [rollback](/apps/rollbacks).
+- It works for apps from GitHub, from a [Docker image](/apps/docker-images), and from the marketplace. Most [marketplace apps](/apps/one-click-apps) run their own migrations when they start, so they rarely need one.
+
+<Tip>
+  For tasks on a schedule rather than on each deploy, use [cron jobs](/apps/cron-jobs).
+</Tip>

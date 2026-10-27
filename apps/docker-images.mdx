@@ -1,0 +1,71 @@
+---
+title: "Deploy a Docker image"
+description: "Run a prebuilt public Docker image on your server without a repository or a build step."
+---
+
+If you already publish an image, you can run it directly. Symplax pulls it onto your server and runs it with the same zero-downtime swap, nginx routing and free HTTPS subdomain as an app built from GitHub. There is no build step, so the builder queue never holds it up.
+
+<Warning>
+  Private registries are not supported yet. The image must be one anyone can pull.
+</Warning>
+
+## Deploy an image
+
+<Steps>
+  <Step title="Open the deploy sheet">
+    Go to **Apps** and click **Deploy App**. Under **Deployment source**, pick **Docker image**.
+  </Step>
+  <Step title="Name the image">
+    Type the image reference in **Image**. A bare name means Docker Hub, and no tag means `:latest`.
+
+    ```text
+    nginx:1.27
+    ghcr.io/your-org/your-app:v2
+    ```
+  </Step>
+  <Step title="Set the port only if you need to">
+    Leave **Container port** empty and Symplax reads the port from the image's `EXPOSE`. Set it if your image declares no port, or more than one.
+  </Step>
+  <Step title="Name it, pick a server, add variables">
+    Choose the **Target server**, optionally a domain, and add environment variables. Click **Start Deployment**.
+  </Step>
+</Steps>
+
+## How the port is chosen
+
+When you leave the port empty, Symplax inspects the pulled image:
+
+- One exposed TCP port: Symplax uses it and says so in the deploy log.
+- Several exposed ports: the deploy stops and asks you to set the container port.
+- No exposed port: the deploy stops and asks you to set the container port.
+
+You can change the port later under **Port** in the app's **Settings** tab, then redeploy.
+
+## How the health check works
+
+Symplax did not build your image, so it does not guess what a healthy response looks like. Unless you set a health check, it only checks that the container is running and accepting connections on its port before swapping it in.
+
+To check a real endpoint, set **Health Check** in **Settings** to a path and the status code it returns, for example `/healthz` and `200`. Symplax then waits for that response before it switches traffic.
+
+## Updating the image
+
+Click **Redeploy** to pull the same reference again and swap to it. If your reference is a moving tag such as `:latest` or `:v2`, this picks up whatever the tag points to now.
+
+Settings that only make sense for a build, such as **Root Directory**, **Dockerfile Path**, **Start Command** and **Build Command**, are hidden for image apps. Auto-deploy on push does not apply, because there is no repository.
+
+## What still applies
+
+Everything after the build works the same as for any app:
+
+- [Environment variables](/apps/environment-variables), passed to the container at runtime.
+- [Domains and SSL](/apps/domains).
+- [Release commands](/apps/release-commands), run from the image before the new container starts.
+- [Cron jobs](/apps/cron-jobs) and [uptime monitoring](/apps/uptime-monitoring).
+
+<Note>
+  One image runs as one container. Symplax does not run multi-container setups. If you have a `docker-compose.yml` with one app and its databases, see [Monorepos](/apps/monorepos#docker-compose-files).
+</Note>
+
+<Tip>
+  Looking for a ready-made app such as n8n or Ghost? The [marketplace](/apps/one-click-apps) installs them with their databases and secrets set up for you.
+</Tip>

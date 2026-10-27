@@ -1,0 +1,26 @@
+---
+title: "Errors and limits"
+description: "What each API error code means, and the rate limit for API keys."
+---
+
+Errors come back as JSON with a message and a code:
+
+```json
+{ "error": "This API key needs the apps:deploy scope for this.", "code": "MISSING_SCOPE" }
+```
+
+| Status | Code | Meaning |
+| --- | --- | --- |
+| 401 | `INVALID_API_KEY` | The key is wrong, revoked or expired. |
+| 401 | `KEY_LOST_ACCESS` | The person who made the key is no longer in its team. |
+| 403 | `MISSING_SCOPE` | The key needs another scope for this. The message names it. |
+| 403 | `NOT_AVAILABLE_TO_API_KEYS` | Keys cannot be used for this at all, whatever their scopes. |
+| 403 | `WRONG_WORKSPACE` | The request asked for a different workspace than the key belongs to. |
+| 403 | `EMAIL_NOT_VERIFIED` | The account that owns the key has not verified its email. |
+| 403 | `PLAN_LIMIT_REACHED` | Your plan does not allow this. The message says which limit. |
+| 429 | `RATE_LIMITED` | More than 120 requests in a minute. `Retry-After` says when to try again. |
+
+## Rate limit
+
+Each key can make 120 requests a minute. Past that, requests get `429` with a `Retry-After`
+header in seconds.

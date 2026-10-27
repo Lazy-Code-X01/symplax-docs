@@ -1,0 +1,53 @@
+---
+title: "Deploy from CI"
+description: "Deploy only after your tests pass, from GitHub Actions or any CI, with one API key."
+---
+
+Auto-deploy ships every push, even one that breaks your tests. To deploy only when tests pass,
+let your CI run the deploy instead.
+
+<Steps>
+  <Step title="Turn off auto-deploy">
+    Open the app, go to the **CI/CD** tab and switch off **Auto Deploy**.
+  </Step>
+  <Step title="Create a key">
+    In **Settings**, **API Keys**, create a key with **Read apps** and **Deploy apps**, in the
+    workspace the app lives in.
+  </Step>
+  <Step title="Store it as a CI secret">
+    In GitHub, go to the repository's **Settings**, **Secrets and variables**, **Actions**, and
+    add it as `SYMPLAX_API_KEY`.
+  </Step>
+  <Step title="Deploy as the last step">
+    Add the deploy after your tests:
+
+    ```yaml .github/workflows/deploy.yml
+    name: Test and deploy
+    on:
+      push:
+        branches: [main]
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: actions/setup-node@v4
+            with:
+              node-version: 20
+          - run: npm ci
+          - run: npm test
+          - run: npx symplax deploy my-api
+            env:
+              SYMPLAX_API_KEY: ${{ secrets.SYMPLAX_API_KEY }}
+    ```
+  </Step>
+</Steps>
+
+`symplax deploy` follows the build and exits with code `1` if the deploy fails, so the job fails
+with it. `SYMPLAX_API_KEY` always wins over a saved login, so CI never needs `symplax login`.
+
+<Tip>
+  Deploying several apps? Run one `symplax deploy` per app, in the order they need to go out,
+  for example the API before the frontend.
+</Tip>

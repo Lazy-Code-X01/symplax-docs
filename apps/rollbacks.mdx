@@ -1,0 +1,64 @@
+---
+title: "Rollbacks"
+description: "Return an app to its previous successful deploy in one click, without rebuilding."
+---
+
+When a deploy goes out and something is wrong, you can put the previous version back. A rollback reuses the image Symplax already built for that deploy, so nothing is rebuilt.
+
+## Deployment history
+
+Open your app and go to the **History** tab. Each successful deploy is listed with:
+
+- The commit and its message.
+- Who or what triggered it, such as a push or a manual deploy.
+- How long it took.
+- Whether it was a normal deploy or a rollback.
+
+The version serving traffic now is marked **Live**.
+
+## Roll back
+
+<Steps>
+  <Step title="Open History">
+    Open your app and go to the **History** tab.
+  </Step>
+  <Step title="Click Rollback">
+    Click **Rollback** on an earlier entry, then **Confirm Rollback**.
+  </Step>
+  <Step title="Watch it swap">
+    Symplax starts the previous image as a new container, health checks it, and swaps it in. Your current version keeps serving until the swap.
+  </Step>
+</Steps>
+
+You can also roll back from a terminal or CI with the [CLI](/cli/overview):
+
+```bash
+npx symplax rollback my-app
+```
+
+<Warning>
+  A rollback always returns to the successful deploy just before the live one, whichever entry you click **Rollback** on. To go further back, roll back again, or redeploy the commit you want.
+</Warning>
+
+A rollback is itself recorded as a new entry in the history. So if you roll back and then roll back again, you return to the version you just left.
+
+## What a rollback does not undo
+
+<Warning>
+  A rollback changes the code that runs. It does not change your data.
+</Warning>
+
+- **Databases are not rolled back.** If the deploy you are leaving ran a migration, the schema stays migrated. Make sure the older code can run against it, or restore a [database backup](/databases/backups).
+- **Release commands do not run.** A rollback starts the old image directly, without its [release command](/apps/release-commands).
+- **Environment variables are today's.** The old image runs with the variables the app has now, not the ones it had when that version was deployed.
+- **Files on volumes stay as they are.**
+
+## When rollback is not available
+
+- **There is no earlier version.** An app needs at least two successful deploys before it can roll back.
+- **Something else is deploying.** Only one deploy or rollback runs on a server at a time. Wait for it to finish.
+- **The server is offline.** The **Rollback** button is disabled until the server reconnects.
+
+## Automatic rollback during a deploy
+
+You do not need to roll back from a deploy that never went live. If a new version fails its health check, Symplax never sends it traffic, and if it fails the check right after the swap, Symplax puts the previous container back on its own. See [Zero-downtime swap](/apps/deploy-from-github#zero-downtime-swap).

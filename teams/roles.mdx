@@ -1,0 +1,117 @@
+---
+title: "Teams and roles"
+description: "Create a team, invite people by email, and choose what each of them can do with Owner, Admin, Developer and Viewer roles."
+icon: "users"
+---
+
+<img src="/images/buddy-team.webp" alt="" width="160" />
+
+A team is a shared workspace. Servers, apps and databases you create while working in a team
+belong to the team, not to you, and everyone in it works on the same set.
+
+## Create a team
+
+You need the **Team** plan to create a team. See [Plans](/billing/plans).
+
+<Steps>
+  <Step title="Open the Team tab">
+    Go to **Settings** and open the **Team** tab.
+  </Step>
+  <Step title="Create it">
+    Click **Create Team** and give it a name. You become its owner.
+  </Step>
+  <Step title="Invite people">
+    Under **Invite someone**, enter an email address, pick a role and click **Send Invite**.
+  </Step>
+</Steps>
+
+The person gets an email with a link to join. They accept it while signed in to the Symplax
+account that uses that same email address.
+
+<Note>
+  An invite expires after 7 days. Sending a new invite to the same address replaces the pending
+  one. Owners and admins can revoke a pending invite from the **Team** tab.
+</Note>
+
+While you are on the Team plan, a team has no member limit. Plan limits inside a team, such as
+servers or deploys per day, follow the team owner's plan, and they count the whole team's usage.
+
+## Roles
+
+| Role | In one line |
+| --- | --- |
+| **Owner** | The person who created the team. Everything an admin can do, plus renaming and deleting the team. |
+| **Admin** | Manages everything and everyone except the team itself. Sees secrets and the server console. |
+| **Developer** | Deploys and manages apps and databases. Secrets stay masked, and every reveal is logged. |
+| **Viewer** | Read-only. Sees apps, servers and logs, changes nothing. |
+
+A team has exactly one owner. You invite people as Admin, Developer or Viewer, and the default
+is Developer.
+
+## What each role can do
+
+| Capability | Owner | Admin | Developer | Viewer |
+| --- | :---: | :---: | :---: | :---: |
+| See servers, apps, databases and logs | Yes | Yes | Yes | Yes |
+| Deploy, redeploy, restart and roll back apps | Yes | Yes | Yes | No |
+| Create, edit and delete apps | Yes | Yes | Yes | No |
+| Create, start, stop and delete databases, run backups and restores | Yes | Yes | Yes | No |
+| Manage cron jobs | Yes | Yes | Yes | No |
+| Read environment variable values | Yes | Yes | Masked, one reveal at a time | No |
+| Read database passwords and connection strings | Yes | Yes | Only for databases they created | No |
+| See and sign deploy hook secrets | Yes | Yes | No | No |
+| Open the server console (root shell) | Yes | Yes | No | No |
+| Restart, rename, recover or delete a server, update its agent, browse its files | Yes | Yes | No | No |
+| Invite people, change roles, remove members | Yes | Yes | No | No |
+| See and revoke the team's API keys | Yes | Yes | No | No |
+| Rename or delete the team | Yes | No | No | No |
+| Leave the team | No | Yes | Yes | Yes |
+
+## Secrets
+
+Only owners and admins see secrets: environment variable values, database passwords and deploy
+hook secrets. This holds whoever created the resource. Creating something inside a team does not
+make you its owner.
+
+Developers get two narrow exceptions so they can do their job:
+
+- **Environment variables.** A developer sees every variable name with its value masked. They
+  can reveal one value at a time. Each reveal is recorded in the audit log with the variable's
+  name, never its value. If the record cannot be written, the reveal is refused. Reveals are
+  rate limited.
+- **Their own databases.** A developer who created a database can read its password and
+  connection string, as long as they are still a developer or admin on the team.
+
+<Note>
+  An API key without the `secrets:read` scope sees no secret at all, whoever owns it. See
+  [API keys](/api/keys).
+</Note>
+
+## Server console
+
+The [server console](/servers/console) is a root shell on the server, so only owners and admins
+can open it. If an admin is demoted or removed while a console is open, Symplax closes that
+console straight away.
+
+## Access follows current membership
+
+Access comes from your place in the team right now, not from what you created.
+
+- **Removing a member** takes away their access immediately, including to apps and databases
+  they created themselves.
+- **Their team API keys stop working.** A key scoped to a team is refused once its owner is no
+  longer a member of that team.
+- **Changing a role** takes effect on their next request. The member gets an email telling them
+  their new role.
+
+Owners and admins can remove any member except the owner. Any member can leave a team on their
+own.
+
+## Delete a team
+
+Only the owner can delete a team, from the **Team** tab.
+
+<Warning>
+  You cannot delete a team that still owns servers, apps or databases. Symplax lists what is in
+  the way. Remove those first, then delete the team.
+</Warning>

@@ -1,0 +1,78 @@
+---
+title: "Cron jobs"
+description: "Run commands on a schedule inside your app's own container, with each run's output recorded."
+---
+
+<img src="/images/buddy-scheduling.webp" alt="" width="160" />
+
+A cron job runs a command on a schedule inside your app's running container. It has your app's code, dependencies and environment variables, so a job can be as simple as running one of your own scripts.
+
+```bash
+node scripts/send-digest.js
+```
+
+## Plan limits
+
+| Plan | Cron jobs |
+| --- | --- |
+| Free | Not available |
+| Pro | 5 |
+| Team | Unlimited |
+
+The Pro limit counts every job you have created, across all of your apps. See [Plans](/billing/plans).
+
+## Create a job
+
+<Steps>
+  <Step title="Open Cron Jobs">
+    Open your app and go to the **Cron Jobs** tab. Click **Add cron job**.
+  </Step>
+  <Step title="Enter a name and command">
+    Give the job a name and type the **Command** to run. It runs with `sh -c` inside the container, from the container's working directory.
+  </Step>
+  <Step title="Choose a schedule">
+    Pick a preset or type a standard five-field cron expression. Expressions with seconds are not accepted.
+  </Step>
+  <Step title="Create it">
+    Click **Create Job**. Symplax installs the schedule on your server.
+  </Step>
+</Steps>
+
+The presets are:
+
+| Preset | Expression |
+| --- | --- |
+| Every minute | `* * * * *` |
+| Hourly | `0 * * * *` |
+| Daily | `0 0 * * *` |
+| Weekly | `0 0 * * 0` |
+| Monthly | `0 0 1 * *` |
+
+<Note>
+  Schedules run on your server's clock. Check your server's time zone before choosing a time of day.
+</Note>
+
+## How jobs run
+
+Symplax writes each job into the cron daemon on your server. When it fires, it runs your command inside the app's container with `docker exec`, then reports the result back to Symplax.
+
+- The job always runs in the current container. After a deploy, it runs against the new version with no changes from you.
+- If the container is not running when the job fires, that run fails.
+- Each run records its start time, finish time, whether it succeeded, and up to 8,000 characters of output.
+- The last 50 runs of each job are shown in the **Cron Jobs** tab.
+
+## Pause, edit or delete a job
+
+- **Pause** stops the job from running without deleting it. Click **Resume** to start it again. A paused job still counts towards your plan limit.
+- **Edit** changes the name, command or schedule.
+- **Delete** removes the job from your server and frees its slot.
+
+<Note>
+  Cron jobs are managed by the person who created the app, while they still have Developer access or higher to its server.
+</Note>
+
+## Good to know
+
+- An app is one container, so a job shares its memory and CPU with the app. Keep heavy jobs to quiet hours.
+- Long-running workers that never exit are not a fit for cron. Symplax does not run background worker apps yet, because every app must serve HTTP.
+- For a one-off task on each deploy, such as migrations, use a [release command](/apps/release-commands) instead.

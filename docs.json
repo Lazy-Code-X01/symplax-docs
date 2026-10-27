@@ -1,72 +1,119 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "Symplax",
+  "description": "Deploy apps, databases and servers on your own VPS, with a Vercel-like experience. Guides, CLI and API reference.",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#10B77F",
+    "light": "#12D393",
+    "dark": "#0E9F6E"
   },
-  "favicon": "/favicon.svg",
+  "background": {
+    "color": {
+      "dark": "#0B0D0C"
+    }
+  },
+  "favicon": "/favicon.png",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "https://symplax.com"
+  },
   "navigation": {
-    "pages": [
+    "tabs": [
       {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": ["index", "quickstart"]
+          },
+          {
+            "group": "Servers",
+            "pages": ["servers/connect", "servers/buy-a-server", "servers/monitoring", "servers/console"]
+          },
+          {
+            "group": "Apps",
+            "pages": [
+              "apps/deploy-from-github",
+              "apps/docker-images",
+              "apps/monorepos",
+              "apps/environment-variables",
+              "apps/domains",
+              "apps/rollbacks",
+              "apps/release-commands",
+              "apps/cron-jobs",
+              "apps/uptime-monitoring",
+              "apps/one-click-apps"
+            ]
+          },
+          {
+            "group": "Databases",
+            "pages": ["databases/overview", "databases/console", "databases/backups", "databases/public-access"]
+          },
+          {
+            "group": "Move to Symplax",
+            "pages": ["import/railway", "import/digitalocean", "import/vercel"]
+          },
+          {
+            "group": "Teams and security",
+            "pages": ["teams/roles", "security/ssh-keys", "security/firewall"]
+          },
+          {
+            "group": "Billing",
+            "pages": ["billing/plans", "billing/wallet"]
+          }
+        ]
+      },
+      {
+        "tab": "CLI and API",
+        "groups": [
+          {
+            "group": "CLI",
+            "pages": ["cli/overview", "cli/ci"]
+          },
+          {
+            "group": "API",
+            "pages": ["api/keys", "api/endpoints", "api/errors"]
+          }
         ]
       }
     ],
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "Dashboard",
+          "href": "https://symplax.com/dashboard",
+          "icon": "gauge"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
+          "anchor": "Changelog",
+          "href": "https://symplax.com/changelog",
           "icon": "newspaper"
         }
       ]
     }
   },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
   "navbar": {
     "links": [
       {
         "label": "Support",
-        "href": "mailto:support@mintlify.com"
+        "href": "mailto:hello@symplax.com"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "label": "Open dashboard",
+      "href": "https://symplax.com/dashboard"
     }
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity", "cursor", "vscode"]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/symplaxhq",
+      "website": "https://symplax.com"
     }
   }
 }

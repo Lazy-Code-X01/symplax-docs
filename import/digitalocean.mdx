@@ -1,0 +1,110 @@
+---
+title: "Import from DigitalOcean"
+description: "Recreate the services, variables and databases of a DigitalOcean App Platform app on your own server."
+---
+
+The DigitalOcean importer reads an App Platform app and recreates it on one of your servers: one Symplax app per service that builds from GitHub, a new empty database per managed database, and the variables that go with them. Nothing in DigitalOcean is changed or deleted.
+
+<Warning>
+Databases are created **empty**. Symplax does not copy any data out of DigitalOcean. Move your data across yourself before you point anything live at the new databases.
+</Warning>
+
+<Note>
+This imports **App Platform** apps. To manage a Droplet, connect it as a server from the **Servers** page instead. See [Connect a server](/servers/connect).
+</Note>
+
+## Before you start
+
+- Connect a server to Symplax and make sure it is online. Everything in the import is created on that one server.
+- Connect the GitHub account that owns each service's repository. Symplax builds from GitHub only.
+- Check you have room for the databases on your plan: Free allows 2, Pro 5, Team unlimited. See [Databases](/databases/overview#how-many-databases-you-can-have).
+
+## Get a DigitalOcean token
+
+In DigitalOcean, open **API** in the left sidebar, then **Tokens**, then **Generate New Token**. Choose **Custom Scopes** and include:
+
+- `app:read`
+- `database:read`
+- `database:view_credentials`
+
+<Warning>
+A **Read Only** token can list your apps, but it cannot read database credentials, despite the name. If the app uses a production managed database, the import is blocked until you reconnect with a token that has `database:view_credentials`.
+</Warning>
+
+Symplax stores the token encrypted and only reads from it when you ask for an app. You can remove it at any time with **Disconnect**.
+
+## Import an app
+
+<Steps>
+  <Step title="Open Integrations">
+    Click **Integrations** in the sidebar. On the DigitalOcean card, click **Connect and import**.
+  </Step>
+  <Step title="Connect DigitalOcean">
+    Paste the token into **API token** and click **Connect**.
+  </Step>
+  <Step title="Choose an app">
+    Pick the App Platform app. Symplax reads its app spec and databases.
+  </Step>
+  <Step title="Review what will be created">
+    Check **Will be created** and **Will not be imported**. Fix anything flagged as **cannot be imported**, **cannot be provisioned** or **needs a different name**. Fill in **Secrets to supply** if you have the values (see below).
+  </Step>
+  <Step title="Choose a server and import">
+    Pick the server, then click the import button, for example **Import 2 apps and 1 database**. Each app starts its first build straight away.
+  </Step>
+</Steps>
+
+## What comes across
+
+**Apps.** Each service that builds from GitHub becomes an app, with its branch, source directory, build command, run command and health check path. The app uses the service's HTTP port (8080 if none is set), and `PORT` is set to match.
+
+**Databases.** Each PostgreSQL, MySQL, Redis, Valkey or MongoDB database becomes a new, empty Symplax database. Symplax uses the nearest version it offers at or above DigitalOcean's, and the review shows a note when it cannot match exactly.
+
+**Variables.** App-level and service-level variables come across. Variables marked for build time are passed to the build as well. Bindings such as `${db.DATABASE_URL}`, `${db.HOSTNAME}` or `${db.PASSWORD}` are rewritten to point at the new Symplax database over the server's private network.
+
+### Encrypted secrets
+
+DigitalOcean encrypts variables of type **Secret** and does not give their values back to anyone, including you. They appear under **Secrets to supply** with one field each. Fill in what you have to hand. Anything left blank arrives unset and is listed after the import, so you can set it later.
+
+## What does not come across
+
+| Item | What happens |
+| --- | --- |
+| Data in databases | Not copied. The databases start empty. |
+| Workers | Skipped. Symplax health-checks every app on an HTTP port, so a worker would be reported as failed. |
+| Static sites | Skipped. Deploy the repository as its own app. |
+| Functions | Skipped. They need rewriting as an app. |
+| Scheduled jobs | Skipped. Recreate them on the app's **Cron** tab. |
+| Pre- and post-deploy jobs | Skipped. There is no equivalent. |
+| Services from an image | Skipped. [Deploy the image](/apps/docker-images) as its own app. |
+| Services from GitLab, Bitbucket or a plain Git URL | Skipped. Symplax builds from GitHub. |
+| Other database engines, such as Kafka or OpenSearch | Skipped. |
+| Custom domains | Not moved. Point DNS at your server, then [add the domain](/apps/domains). |
+| Path routing | Each imported app gets its own domain. Code that fetches another service by a relative path needs a full URL. |
+| Extra instances | Symplax runs one container per app. |
+| `JDBC_DATABASE_URL`, `CA_CERT` and bindings to other services | Left unset and listed after the import. |
+
+<Note>
+A production database cluster blocks the import if Symplax cannot read its credentials, or if the cluster only accepts connections from trusted sources. The review tells you which one and how to fix it.
+</Note>
+
+## After importing
+
+<Steps>
+  <Step title="Watch the first builds">
+    Each app shows **Building now, watch the log**. Apps linked to a database start building once that database is running.
+  </Step>
+  <Step title="Fill in unset variables">
+    Set any secrets and variables listed under **Some variables were left unset** on the app's **Variables** tab, then redeploy.
+  </Step>
+  <Step title="Move your data">
+    Dump each DigitalOcean database and load it into the new one, for example over [public access](/databases/public-access) with your usual tools.
+  </Step>
+  <Step title="Recreate what was skipped">
+    Recreate jobs as cron jobs, deploy static sites and image services as their own apps, and fix any relative-path calls between services.
+  </Step>
+  <Step title="Move your domains">
+    When everything works on the `*.symplax.app` address, point your DNS at the server and add your custom domains.
+  </Step>
+</Steps>
+
+If anything fails while the import itself is running, Symplax removes what it had created and tells you nothing was left behind.

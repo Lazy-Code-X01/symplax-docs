@@ -1,0 +1,87 @@
+---
+title: "Buy a server"
+description: "Launch a Symplax-provisioned server billed by the hour from your wallet, ready for apps and databases."
+---
+
+<img src="/images/buddy-vps-shopping.webp" alt="" width="160" />
+
+If you don't have a VPS, you can buy one from inside Symplax. A Symplax-provisioned server comes with the agent already installed and set up, and is billed by the hour from your [wallet](/billing/wallet). You pay for the hours it runs, and you can delete it at any time.
+
+## Sizes
+
+| Size | vCPU | RAM | Disk |
+| --- | --- | --- | --- |
+| Spark | 2 | 4 GB | 40 GB SSD |
+| Boost | 4 | 8 GB | 80 GB SSD |
+| Surge | 8 | 16 GB | 160 GB SSD |
+| Blaze | 16 | 32 GB | 320 GB SSD |
+
+Every size runs the latest Ubuntu LTS in Helsinki, Finland. The purchase screen shows each size's hourly rate in your wallet's currency (NGN or USD). For current prices, see [symplax.com/pricing](https://symplax.com/pricing).
+
+<Note>
+A size can be out of stock for a while. When that happens, the purchase is refused before anything is charged. Pick another size or try again later.
+</Note>
+
+## Buy a server
+
+<Steps>
+  <Step title="Top up your wallet">
+    You need enough balance to run the size you pick for 24 hours. If you don't have it, Symplax tells you how much more you need. See [wallet](/billing/wallet).
+  </Step>
+  <Step title="Pick a size">
+    Go to **Servers**, click **New Server**, then choose **Buy a VPS**. Select a size.
+  </Step>
+  <Step title="Name it and set a root password">
+    Give the server a name of 1 to 63 characters and choose a root password of at least 8 characters. Weak passwords are rejected.
+
+    You'll use this password for direct SSH access as `root`.
+  </Step>
+  <Step title="Wait for setup">
+    Symplax creates the machine, waits for it to boot, and installs the agent. The servers page shows each stage. When it's done, the server is ready to [deploy to](/apps/deploy-from-github).
+  </Step>
+</Steps>
+
+You can only have one purchase in progress at a time. If you click twice, the second attempt is refused.
+
+## How billing works
+
+- Billing starts when the server is ready, not when you click buy, so setup time is free.
+- Your wallet is charged each hour the server runs, at the hourly rate shown when you bought it.
+- There is no monthly cap. A server left running all month costs its hourly rate times the hours in the month.
+- Deleting the server stops its billing.
+
+<Note>
+Your plan (Free, Pro or Team) sets how many servers you can have, and servers you buy count toward that limit along with servers you connect. See [plans](/billing/plans).
+</Note>
+
+## When your wallet runs low
+
+Symplax checks every minute and handles a running-out balance in three stages.
+
+<Steps>
+  <Step title="Low balance warning">
+    When your balance drops to ₦500 or $1, you get an email and a dashboard notification with roughly how many hours you have left. The estimate covers all your running servers together.
+  </Step>
+  <Step title="Paused at zero">
+    When your balance reaches zero, every server you bought is powered off. Your data stays on the disk. A paused server is not billed, and its apps and databases are offline. You get an email and a notification.
+  </Step>
+  <Step title="Deleted after 24 hours">
+    If a server stays paused for 24 hours, it is permanently deleted along with everything on it. This can't be undone.
+  </Step>
+</Steps>
+
+Top up at any point before the 24 hours run out and your paused servers power back on by themselves. You don't need to do anything else.
+
+<Warning>
+Deletion after 24 hours paused is permanent, and that includes any databases on the server. Keep your wallet topped up, and keep [backups](/databases/backups) of anything you can't lose.
+</Warning>
+
+## Deleting a server you bought
+
+Owners and admins can open the server's **Settings** tab and click **Destroy Server** under **Danger Zone**. This deletes the machine and everything on it, and stops its billing.
+
+## Root access
+
+You can SSH into the server as `root` with the password you chose. Symplax keeps password login for `root` turned on for these servers so that password works. Fail2Ban, which Symplax installs, blocks addresses after repeated failed logins. To change the password, open the server's **Settings** tab and use **Root Password**. It asks you to confirm by email first.
+
+You can also use the in-browser [console](/servers/console) without setting up SSH on your machine.

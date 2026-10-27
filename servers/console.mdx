@@ -1,0 +1,78 @@
+---
+title: "Server console"
+description: "Open a terminal on your server from the dashboard, without setting up SSH on your own machine."
+---
+
+The console gives you a shell on your server inside the browser. Symplax opens the SSH connection for you with the credentials it already holds, so you don't need a key on the computer you're using.
+
+## Who can use it
+
+The console is a full shell on the server, usually as `root`, so only the workspace **Owner** and **Admins** can open it. Developers and Viewers don't see the **Console** tab at all. See [team roles](/teams/roles).
+
+Access is checked when a session opens and again about every 30 seconds while you type. If someone's role is lowered, their open sessions close within that window.
+
+## Open a terminal
+
+<Steps>
+  <Step title="Open the server">
+    Go to **Servers** and click **Manage** on the server.
+  </Step>
+  <Step title="Go to the Console tab">
+    The server must be online. If it's offline, the tab says so and you can't open a terminal.
+  </Step>
+  <Step title="Start a shell">
+    Press **+** (**New terminal**). The shell opens as the SSH user the server was connected with, which is `root` for most servers.
+  </Step>
+</Steps>
+
+You can open up to 4 terminals on the same server at once, each in its own tab.
+
+## Toolbar
+
+| Tool | What it does |
+| --- | --- |
+| Find | Search the output. Shortcut: <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>F</kbd> |
+| Copy | Copies your selection, or all output if nothing is selected |
+| Download | Saves this shell's output to a file |
+| Clear | Clears the screen |
+| Text size | Makes the text smaller or larger |
+| Fullscreen | Fills the window. <kbd>Esc</kbd> exits |
+
+## Session rules
+
+<AccordionGroup>
+  <Accordion title="Idle timeout">
+    A shell with no keystrokes for 30 minutes is closed.
+  </Accordion>
+  <Accordion title="Dropped connections">
+    If your browser loses its connection briefly, the shell keeps running on Symplax's side for 60 seconds so you can pick it back up. A long command such as `apt upgrade` isn't killed by a short network blip.
+  </Accordion>
+  <Accordion title="Very large output">
+    If a command prints a huge burst of output at once, the excess is cut off with an `[output truncated]` notice so your browser tab doesn't freeze. Redirect big output to a file and read it with `less` instead.
+  </Accordion>
+</AccordionGroup>
+
+## Recording
+
+Every session is recorded, both what you type and what the server prints. Recordings are kept for 90 days and then deleted. A recording stops after 2 MB of data in one session.
+
+<Warning>
+Anything you type or print in the console ends up in the recording, including passwords and secrets. Avoid printing secrets to the screen. Use [environment variables](/apps/environment-variables) for app secrets.
+</Warning>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="I don't see a Console tab">
+    You're not an Owner or Admin in this workspace. Ask an owner to change your role, or to run the command for you.
+  </Accordion>
+  <Accordion title="This server is not online">
+    The agent isn't reporting. See [monitoring](/servers/monitoring) for what offline means.
+  </Accordion>
+  <Accordion title="You already have 4 console sessions open on this server">
+    Close a terminal tab you no longer need, then open a new one.
+  </Accordion>
+  <Accordion title="Could not start a shell">
+    Symplax reached the server but couldn't log in or start a shell. Check that the SSH key or password Symplax uses still works, for example that nobody removed its key from `~/.ssh/authorized_keys`. See [SSH keys](/security/ssh-keys).
+  </Accordion>
+</AccordionGroup>

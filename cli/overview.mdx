@@ -1,0 +1,93 @@
+---
+title: "CLI"
+description: "Deploy, read logs, restart and roll back your Symplax apps from a terminal, CI or AI assistant."
+icon: "terminal"
+---
+
+<img src="/images/buddy-api-key.webp" alt="" width="200" />
+
+The Symplax CLI is the `symplax` package on npm. It needs Node.js 18 or later.
+
+```bash
+npm install -g symplax     # or put npx in front of any command
+symplax login
+```
+
+## Sign in
+
+`symplax login` shows a short code and opens symplax.com in your browser.
+
+<Steps>
+  <Step title="Check the code">
+    The browser shows the same code as your terminal, and the name of the machine asking.
+  </Step>
+  <Step title="Choose the access">
+    Pick the workspace, personal or a team, what the CLI may do, and how long it stays signed in:
+    30, 90 or 365 days, or no expiry.
+  </Step>
+  <Step title="Authorize">
+    Click **Authorize**. The terminal picks up its key by itself and says who you are signed in as.
+  </Step>
+</Steps>
+
+Over SSH, on a machine with no display, or with `--no-browser`, the CLI prints the link instead.
+Open it on any device, your phone included, and enter the code.
+
+The login is an [API key](/api/keys) named after your machine, such as "CLI on my-laptop". You
+can see and revoke it in **Settings**, **API Keys**. `symplax logout` forgets it on this machine.
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `symplax apps` | Your apps, their status, server and URL |
+| `symplax deploy [app]` | Deploy the latest code and follow the build until it is live |
+| `symplax logs [app] -n 200` | The app's recent logs |
+| `symplax restart [app]` | Restart the app |
+| `symplax rollback [app]` | Go back to the last good deploy |
+| `symplax servers` | Your servers |
+| `symplax db list` | Your databases |
+| `symplax db create <name> --engine postgres@17` | Create a database (add `--server <name>` if you have more than one) |
+| `symplax whoami` | The account and key in use |
+| `symplax logout` | Forget the saved login |
+
+Leave out the app and you get a list to pick from with the arrow keys. You can also name an app
+in any case, by the start of a unique name, or by its id.
+
+## Following a deploy
+
+```text
+$ symplax deploy my-api
+
+⬢ symplax  deploying my-api
+
+│ Installing dependencies
+✓ Building 1m 12s
+✓ Starting on your server 19s
+
+╭───────────────────────────────╮
+│  ✓ my-api is live             │
+│  https://my-api.symplax.app   │
+│  deployed in 1m 48s           │
+╰───────────────────────────────╯
+```
+
+If the build fails, the CLI says at which step, what went wrong and how to fix it, and exits
+with code `1`. Press `Ctrl+C` to stop following; the deploy carries on.
+
+## For scripts and AI assistants
+
+- `--json` on any command prints JSON on stdout. Progress and messages go to stderr.
+- Exit codes: `0` success, `1` failure, `2` a usage mistake, such as a name that matches two apps.
+- Colors switch off when the output is not a terminal, or when `NO_COLOR` is set.
+- The saved login is in `~/.config/symplax/config.json`, readable only by you.
+
+<Tip>
+  AI coding assistants that run terminal commands, like Claude Code, Cursor or Codex, can use the
+  CLI directly: "deploy my-api with symplax, and if it fails, read the logs and fix it."
+</Tip>
+
+<Note>
+  The CLI cannot yet set environment variables, create apps, or manage domains, cron jobs or
+  backups. Use the dashboard for those.
+</Note>

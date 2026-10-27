@@ -1,0 +1,76 @@
+---
+title: "SSH keys"
+description: "How Symplax uses SSH keys to reach your servers, and how to manage the keys on your account."
+---
+
+<img src="/images/buddy-ssh-key.webp" alt="" width="160" />
+
+Symplax talks to your servers over SSH: to install and update the agent, to stream logs, and to open the [console](/servers/console). This page explains which keys it uses and what the **SSH Keys** list in your settings does.
+
+## Your managed key
+
+The first time you [connect a server](/servers/connect) with a password, Symplax creates an SSH key pair for your account called **Symplax Default Key**. It then:
+
+1. Adds the public key to `~/.ssh/authorized_keys` for the SSH user you connected with.
+2. Stores the private key encrypted, and uses it for that server from then on.
+
+Every later server you connect with a password gets the same key. In lists, it is marked **Symplax Managed** or **MANAGED**.
+
+Symplax always tries the key before the password. That matters because Fail2Ban, which Symplax installs, bans addresses after repeated failed logins. Trying an out-of-date password first would count against Symplax.
+
+<Tip>
+Once you have a managed key, you can connect new servers without a password. Copy the managed key's public key from **Settings** > **SSH Keys**, add it to `~/.ssh/authorized_keys` on the new server, then connect with **SSH Key** and pick **Symplax Default Key**. The connect form selects it for you by default.
+</Tip>
+
+## Connecting with your own private key
+
+On the connect form, choose **SSH Key**, then pick **Paste a custom private key...** and paste the private key, including the `BEGIN` and `END` lines. Symplax stores it encrypted for that server only. It isn't added to your account's key list.
+
+<Note>
+Paste the private key, not the `.pub` file. The public key alone can't log in.
+</Note>
+
+## Keys in your settings
+
+Go to **Settings** > **SSH Keys** to see the keys on your account. Each shows its type, a shortened fingerprint and the date it was added. You can also see and add keys from a server's **Settings** tab, under **Connection Details**.
+
+### Add a public key
+
+<Steps>
+  <Step title="Open the form">
+    Click **Add New Key**.
+  </Step>
+  <Step title="Fill it in">
+    Enter a **Key Name** such as `MacBook-Work`, and paste your **Public Key**, for example the contents of `~/.ssh/id_ed25519.pub`.
+  </Step>
+  <Step title="Save">
+    Click **Add Key**.
+  </Step>
+</Steps>
+
+<Warning>
+Adding a public key here saves it to your account. Symplax doesn't copy it to your servers. To log in with that key yourself, add it to `~/.ssh/authorized_keys` on each server, for example from the [console](/servers/console):
+
+```bash
+echo "ssh-ed25519 AAAA... you@laptop" >> ~/.ssh/authorized_keys
+```
+</Warning>
+
+A key you add this way has no private half stored in Symplax, so you can't pick it on the connect form to log in.
+
+### Remove a key
+
+Click the trash icon next to a key and confirm.
+
+Removing a key deletes it from your Symplax account only. It stays in `authorized_keys` on any server it was added to. To revoke access, delete that line from `~/.ssh/authorized_keys` on each server.
+
+Servers already connected keep working after you remove the managed key, because each one has its own stored copy. The next server you connect with a password gets a new managed key.
+
+## Servers you bought
+
+A [Symplax-provisioned server](/servers/buy-a-server) gets its own key, created for that server when it is set up. You log in yourself as `root` with the password you chose when buying it, or add your public key to `~/.ssh/authorized_keys` as above.
+
+## Security
+
+- Private keys are encrypted at rest and never returned by the API or shown in the dashboard.
+- Removing the key Symplax uses from a server's `authorized_keys` cuts Symplax's SSH access to it. The console and anything else that needs SSH stop working until Symplax can log in again.

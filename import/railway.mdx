@@ -1,0 +1,99 @@
+---
+title: "Import from Railway"
+description: "Recreate the apps, variables and databases of a Railway project on your own server."
+icon: "right-to-bracket"
+---
+
+The Railway importer reads a Railway project and recreates it on one of your servers: one Symplax app per service that builds from GitHub, a new empty database per database service, and the variables that go with them. Nothing in Railway is changed or deleted.
+
+<Warning>
+Databases are created **empty**. Symplax does not copy any data out of Railway. Move your data across yourself before you point anything live at the new databases.
+</Warning>
+
+## Before you start
+
+- Connect a server to Symplax and make sure it is online. Everything in the import is created on that one server.
+- Connect the GitHub account that owns each service's repository. Symplax builds from GitHub only.
+- Check you have room for the databases on your plan: Free allows 2, Pro 5, Team unlimited. See [Databases](/databases/overview#how-many-databases-you-can-have).
+
+## Get a Railway token
+
+In Railway, open your account menu at the bottom left, then **Account Settings**, then **Tokens**. Create a token with **no team selected**. A project token cannot list your projects, so it will not work.
+
+Symplax stores the token encrypted and only reads from it when you ask for a project. You can remove it at any time with **Disconnect**.
+
+## Import a project
+
+<Steps>
+  <Step title="Open Integrations">
+    Click **Integrations** in the sidebar. On the Railway card, click **Connect and import**.
+  </Step>
+  <Step title="Connect Railway">
+    Paste the token into **API token** and click **Connect**.
+  </Step>
+  <Step title="Choose a project">
+    Pick the project. Symplax reads each service, which can take a moment on a large project.
+  </Step>
+  <Step title="Review what will be created">
+    Check **Will be created** and **Will not be imported**. Fix anything flagged as **cannot be imported** or **needs a different name** (use **Rename**, which only changes the name in Symplax).
+  </Step>
+  <Step title="Choose a server and import">
+    Pick the server, then click the import button, which names what it will create, for example **Import 2 apps and 1 database**. Each app starts its first build straight away.
+  </Step>
+</Steps>
+
+## What comes across
+
+**Apps.** Each service with a GitHub repository becomes an app, with its root directory, build command, start command and health check path. If the service has a Railway domain, its port is used and `PORT` is set. Otherwise the app listens on port 3000.
+
+**Databases.** Each database service becomes a new, empty Symplax database of the same engine: PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Valkey or ClickHouse. Symplax picks the version from the image tag, using the nearest version it offers at or above Railway's. When it cannot match exactly, the review shows a note.
+
+**Variables.** Your own service variables come across. Railway's injected `RAILWAY_*` variables do not. References to a database, such as `${{Postgres.DATABASE_URL}}`, `PGHOST` or `REDIS_URL`, are rewritten to point at the new Symplax database over the server's private network. Apps that wait on a database start building once it is running.
+
+## What does not come across
+
+| Item | What happens |
+| --- | --- |
+| Data in databases | Not copied. The databases start empty. |
+| Branch | Apps build from `main`, whatever branch Railway used. |
+| Cron services | Skipped. Recreate them on the app's **Cron** tab. |
+| Services that run a non-database image | Skipped. [Deploy the image](/apps/docker-images) as its own app. |
+| Volumes | Not attached. Add storage to the app afterwards. |
+| Custom domains | Not moved. Point DNS at your server, then [add the domain](/apps/domains). |
+| Other environments | Only `production` is imported, or the only environment if there is just one. |
+| Variables that reference an app or a skipped service | Left unset and listed after the import. |
+| More than 4 databases | Only 4 per import. Create the rest separately. |
+
+<Warning>
+If a Railway service builds from a branch other than `main`, change the app's branch in Symplax after importing. If the repository has no `main` branch, the first build fails until you do.
+</Warning>
+
+<Note>
+A Railway database without a public endpoint blocks the import. In Railway, open the database, then **Settings**, **Networking**, **Add Public Access**, and refresh the review in Symplax.
+</Note>
+
+<Note>
+If the project has several environments and none is called `production`, the import cannot pick one and stops with a message listing them.
+</Note>
+
+## After importing
+
+<Steps>
+  <Step title="Watch the first builds">
+    Each app shows **Building now, watch the log**. A failed build is an ordinary failed deploy, nothing else is undone.
+  </Step>
+  <Step title="Fill in unset variables">
+    If the import lists **Some variables were left unset**, set them on the app's **Variables** tab and redeploy.
+  </Step>
+  <Step title="Move your data">
+    Dump each Railway database and load it into the new one, for example over [public access](/databases/public-access) with your usual tools.
+  </Step>
+  <Step title="Check the branch, cron jobs and volumes">
+    Fix the branch if it is not `main`, recreate cron jobs, and add storage for any volumes.
+  </Step>
+  <Step title="Move your domains">
+    When everything works on the `*.symplax.app` address, point your DNS at the server and add your custom domains.
+  </Step>
+</Steps>
+
+If anything fails while the import itself is running, Symplax removes what it had created and tells you nothing was left behind.

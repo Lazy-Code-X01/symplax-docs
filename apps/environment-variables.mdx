@@ -1,0 +1,94 @@
+---
+title: "Environment variables"
+description: "Set runtime and build-time variables for an app, and control who on your team can read their values."
+---
+
+Every app has its own environment variables. Symplax passes them to your container when it starts, and to your build when the build needs them.
+
+## Add and edit variables
+
+<Steps>
+  <Step title="Open the Variables tab">
+    Open your app and go to the **Variables** tab.
+  </Step>
+  <Step title="Add your variables">
+    Click **Add Variable** and fill in a name and value. To add many at once, paste a block of `KEY=VALUE` lines into a field and Symplax splits them into rows.
+  </Step>
+  <Step title="Save and redeploy">
+    Click **Save & Redeploy**. Changes reach your app on its next deploy, so a saved variable is not live until the redeploy finishes.
+  </Step>
+</Steps>
+
+You can also add variables in the last step of **Deploy App**, before the first deploy. Owners and admins can download all of an app's variables as a `.env` file from the same tab.
+
+<Tip>
+  Setting `PORT` also tells Symplax which port to route traffic to. See [Port and health check](/apps/deploy-from-github#port-and-health-check).
+</Tip>
+
+## Runtime and build-time variables
+
+Server code reads its configuration when it starts. Frontend frameworks are different: Next.js, Vite and the rest read some variables during `npm run build` and compile the values into the JavaScript they ship. A variable that only exists at runtime is missing from that bundle, and the build often fails while prerendering.
+
+Symplax handles both:
+
+<Tabs>
+  <Tab title="Browser-exposed prefixes">
+    Variables whose names start with one of these prefixes are passed to `docker build` as build arguments, and set as `ENV` after every `FROM` in your Dockerfile. They show a **Build** badge in the Variables tab.
+
+    | Prefix | Framework |
+    | --- | --- |
+    | `NEXT_PUBLIC_` | Next.js |
+    | `VITE_` | Vite |
+    | `REACT_APP_` | Create React App |
+    | `NUXT_PUBLIC_` | Nuxt 3 |
+    | `PUBLIC_` | SvelteKit, Astro |
+    | `GATSBY_` | Gatsby |
+    | `EXPO_PUBLIC_` | Expo |
+    | `VUE_APP_` | Vue CLI |
+
+    These values end up in your image and in the JavaScript sent to every visitor. Never put a secret behind one of these prefixes.
+  </Tab>
+  <Tab title="Other variables you mark">
+    A build sometimes needs a variable with any other name, such as `SENTRY_AUTH_TOKEN` or `API_BASE`. Hover the variable in the Variables tab and click **Build** to pass it to the build as a build argument too. Click the badge again to stop.
+
+    Like the prefixed ones, a marked variable is recorded in the image, so only mark values that are safe to keep there.
+  </Tab>
+  <Tab title="Everything else">
+    All of your variables are also available while the build runs, as a BuildKit secret mount. Each shell-form `RUN` step in the Dockerfile can read them, so `next build` with Prisma, Payload or a CMS that needs `DATABASE_URL` or a secret key works.
+
+    A secret mount is not stored in the image, its layers or its history. Exec-form steps (`RUN ["cmd", "arg"]`) and heredoc steps do not receive these values.
+  </Tab>
+</Tabs>
+
+<Note>
+  If your build connects to a Symplax database on the same server, the internal hostname does not resolve on the build machine. Symplax points the build at the database's public address only when you have already turned on [public access](/databases/public-access) for it. It never opens a database for a build.
+</Note>
+
+## Linked databases
+
+When you link a managed database to an app, Symplax adds its connection string for you: `DATABASE_URL` for PostgreSQL, `MYSQL_URL` for MySQL and MariaDB, `MONGODB_URL` for MongoDB, `REDIS_URL` for Redis and Valkey, and `CLICKHOUSE_URL` for ClickHouse. Variables that Symplax manages, such as these, are locked in the Variables tab. Redeploy the app to apply a new link. See [Databases](/databases/overview).
+
+## Encryption
+
+Values are encrypted with AES-256-GCM before they are stored, and decrypted only when they are sent to a build or to your server, or shown to someone allowed to see them.
+
+## Who can see values
+
+On a team, what a person sees depends on their role. See [Team roles](/teams/roles).
+
+| Role | What they see |
+| --- | --- |
+| Owner | Every value. |
+| Admin | Every value. |
+| Developer | Names, with every value masked. They can reveal one value at a time. |
+| Viewer | Nothing. Viewers cannot open an app's variables. |
+
+In a personal workspace, you are the owner.
+
+A developer reveals a value by clicking the eye icon beside it. Every reveal is recorded in an audit log with who revealed it, the variable name and the app, never the value, before the value is returned. If the log entry cannot be written, the reveal is refused. Reveals are capped at 30 per person every 10 minutes.
+
+Developers can still add and change variables. A masked value that they leave untouched is saved unchanged, so editing one variable does not overwrite the others.
+
+<Note>
+  API keys need the `secrets:read` scope to read variable values. See [API keys](/api/keys).
+</Note>

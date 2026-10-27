@@ -1,0 +1,90 @@
+---
+title: "Wallet"
+description: "Fund pay-as-you-go servers from a prepaid wallet in naira or US dollars, billed by the hour."
+icon: "wallet"
+---
+
+Servers you [buy from Symplax](/servers/buy-a-server) are paid for from your wallet. You top it
+up in advance, and each running server takes its hourly rate from the balance. There is no
+contract and no monthly bill.
+
+The wallet only pays for servers. Your management plan (Free, Pro or Team) is billed separately.
+See [Plans](/billing/plans).
+
+## Currency
+
+Your wallet holds one currency: naira (NGN) or US dollars (USD). It is set the first time you top
+up or buy a server, from the currency your account uses, and it stays fixed after that.
+
+<Warning>
+  Every later top-up has to be in the same currency. Symplax does not convert between naira and
+  dollars inside a wallet.
+</Warning>
+
+## Top up
+
+<Steps>
+  <Step title="Open the wallet">
+    Click the wallet balance at the top of the dashboard. The **Top up your wallet** dialog opens.
+  </Step>
+  <Step title="Choose an amount">
+    Pick a suggested amount or type your own. When a server is running, the suggestions cover
+    about 7, 14 and 30 days at your current usage, and the dialog shows how long the amount you
+    entered will last.
+  </Step>
+  <Step title="Pay">
+    Click **Top up** and finish the payment on the hosted checkout, processed by Bachs. You are
+    sent back to the dashboard and your balance updates.
+  </Step>
+</Steps>
+
+The dialog shows the smallest and largest amount you can top up at once. You get a receipt by
+email for every top-up.
+
+## Hourly billing
+
+- Each server has an hourly rate in your wallet's currency, set when you buy it.
+- You need at least 24 hours of that rate in your wallet to start a new server.
+- Billing starts once the server is ready. The minutes spent setting it up are not charged.
+- After that, each full hour the server runs is taken from your balance.
+- A paused server is not charged.
+
+## Low balance
+
+When your balance drops to **₦500** or **$1**, Symplax sends you an email and a dashboard
+notification with roughly how many hours you have left. The wallet balance in the dashboard
+also turns amber. You get this warning once, and it resets when you top up.
+
+## When the balance reaches zero
+
+<Steps>
+  <Step title="Your servers pause">
+    When the balance reaches zero, every pay-as-you-go server on your account is powered off and
+    marked paused, newest first. You get an email and a notification. Apps on a paused server are
+    offline.
+  </Step>
+  <Step title="Top up to resume">
+    A top-up turns paused servers back on automatically. You do not need to do anything else.
+    The time spent paused is not billed.
+  </Step>
+  <Step title="Deprovisioned after 24 hours">
+    A server that stays paused for 24 hours is permanently deprovisioned, and you get a dashboard
+    notification.
+  </Step>
+</Steps>
+
+<Warning>
+  Deprovisioning deletes the server and everything on it, including apps and databases. It
+  cannot be undone. Top up within 24 hours of a pause to keep your server.
+</Warning>
+
+## Transactions and receipts
+
+The **Recent activity** list in the **Top up your wallet** dialog shows your wallet ledger:
+
+- **Top up**: money you added.
+- **Compute**: an hourly charge, labelled with the server's name.
+- **Refund** and **Adjustment**: credits or corrections made by Symplax.
+
+Wallet top-ups also appear in your payment history in **Settings**, on the **Billing** tab, next
+to your plan payments.

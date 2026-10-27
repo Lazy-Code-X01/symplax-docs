@@ -1,0 +1,97 @@
+---
+title: "One-click apps"
+description: "Install open-source apps such as n8n, Ghost and Metabase from the marketplace, with databases and secrets set up for you."
+---
+
+<img src="/images/buddy-apps.webp" alt="" width="160" />
+
+The **Marketplace** installs popular open-source apps on your server with one click. Each entry is a tested recipe: Symplax pulls the official image, creates any database the app needs, generates its secrets, sets the variables that depend on its address, and deploys it with the same health check, zero-downtime swap and HTTPS as any other app.
+
+## Install an app
+
+<Steps>
+  <Step title="Open the marketplace">
+    In the dashboard sidebar, click **Marketplace**.
+  </Step>
+  <Step title="Pick an app and a server">
+    Click **Install** on the app you want, choose a server and a name.
+  </Step>
+  <Step title="Wait for it to come up">
+    Symplax creates the database first, if the app needs one, then deploys the app. Watch the progress on the app's page. It gets a free `*.symplax.app` address, and you can add your own domain later. See [Domains and SSL](/apps/domains).
+  </Step>
+</Steps>
+
+<Note>
+  Marketplace installs need your server's Symplax agent to be version 2.1.18 or newer. If it is older, the install tells you to update it first.
+</Note>
+
+## The catalog
+
+<AccordionGroup>
+  <Accordion title="Uptime Kuma: uptime monitoring">
+    Self-hosted uptime monitoring with status pages and alerts. Its data is kept on a volume, with no separate database.
+  </Accordion>
+  <Accordion title="n8n: workflow automation">
+    Workflow automation with hundreds of integrations.
+
+    - Generates `N8N_ENCRYPTION_KEY` once at install.
+    - Sets `N8N_HOST`, `WEBHOOK_URL` and `N8N_EDITOR_BASE_URL` to the app's own address, so webhook URLs point at the right host.
+    - Keeps its data on a volume. Allows up to 7 minutes to start, because it runs migrations on first boot.
+  </Accordion>
+  <Accordion title="Ghost: blogs and newsletters">
+    Publishing platform for blogs, newsletters and paid memberships.
+
+    - Creates a managed **MySQL** database and wires in its connection details.
+    - Sets Ghost's `url` to the app's address.
+    - Sends email through SMTP credentials you add on the app's page. See [Email sending](#email-sending).
+    - Admin panel at `/ghost/`. Content is kept on a volume.
+  </Accordion>
+  <Accordion title="Meilisearch: search">
+    Fast, typo-tolerant search for your own apps.
+
+    - Generates `MEILI_MASTER_KEY` once at install, and runs in production mode with analytics off.
+    - Reads the search and admin API keys Meilisearch creates, and shows them under **API keys** on the app's page.
+  </Accordion>
+  <Accordion title="Metabase: dashboards and SQL">
+    Dashboards and SQL over your own databases.
+
+    - Creates a managed **PostgreSQL** database for Metabase's own data.
+    - Needs a server with at least 3 GB of memory. On a smaller server the install is refused, so it cannot starve your other apps.
+  </Accordion>
+  <Accordion title="Vaultwarden: password manager">
+    A password manager compatible with the Bitwarden apps.
+
+    - Generates `ADMIN_TOKEN` once at install, for the admin panel at `/admin`.
+    - Sets `DOMAIN` to the app's address.
+    - New sign-ups are turned off. Invite users from the admin panel.
+  </Accordion>
+</AccordionGroup>
+
+## What is set up for you
+
+- **Database**: Ghost and Metabase get a managed database on the same server, linked to the app. It shows on your **Databases** page with its own console and backups.
+- **Generated secrets**: encryption and admin keys are created once and never regenerated on a redeploy, because changing them could make existing data unreadable. Owners and admins can read them in the **Variables** tab.
+- **Address-based settings**: apps that need their own URL get it, since the subdomain is assigned before the app's variables are written.
+- **Port and health check**: each entry uses the port and health check that were tested against the real app. The health check is read-only in **Settings**.
+
+## Email sending
+
+Ghost needs SMTP to send member sign-ups and password resets. Open the app, add your provider's SMTP details under **Email sending**, and send a test. Symplax passes them to the app on its next deploy. The app runs without them, it just cannot send email.
+
+## Updates
+
+Each entry is pinned to a major version, such as Ghost 5 or n8n 1. Symplax compares the image your app runs with the one the registry has now. When a newer build is out, the app's **Settings** tab shows that an update is available.
+
+When you update, Symplax first tries to take a backup of the app, then pulls the new image and swaps to it only if it passes its health check. If the new version fails, the current one keeps running.
+
+<Warning>
+  An app's own migrations may change its database on first boot of a new version. A container rollback does not undo that, which is why Symplax backs up first. Backups need a plan that includes them. See [Plans](/billing/plans).
+</Warning>
+
+**Redeploy** is different from an update: it pulls the same version the app already runs.
+
+## Limits
+
+- Each app runs as one container on one server, like any Symplax app.
+- The catalog is fixed. To run something that is not listed, deploy its image with [Docker image](/apps/docker-images).
+- Only one install runs on a server at a time.

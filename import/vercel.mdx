@@ -1,0 +1,105 @@
+---
+title: "Import from Vercel"
+description: "Rebuild a Vercel project as a container app on your own server, with its production variables."
+---
+
+The Vercel importer reads one Vercel project and creates one Symplax app from it on your server, building from the same GitHub repository. Nothing in Vercel is changed or deleted.
+
+## Before you start
+
+- Connect a server to Symplax and make sure it is online.
+- Connect the GitHub account that owns the project's repository. Symplax builds from GitHub only.
+
+## Get a Vercel token
+
+In Vercel, open your account **Settings**, then **Tokens**, then **Create**. Scope it to your personal account if you can.
+
+<Warning>
+Vercel has no read-only token, so this token can change your Vercel account as well as read it. Symplax only reads from it, but delete the token in Vercel once the import is done.
+</Warning>
+
+Symplax stores the token encrypted. You can remove it at any time with **Disconnect**.
+
+## Import a project
+
+<Steps>
+  <Step title="Open Integrations">
+    Click **Integrations** in the sidebar. On the Vercel card, click **Connect and import**.
+  </Step>
+  <Step title="Connect Vercel">
+    Paste the token into **API token** and click **Connect**.
+  </Step>
+  <Step title="Choose a project">
+    Pick the project. If you have many, use the search box.
+  </Step>
+  <Step title="Review what will be created">
+    Check the app and the **Will not come across** list carefully. Fill in **Secrets to supply** if you have the values (see below).
+  </Step>
+  <Step title="Choose a server and import">
+    Pick the server and click **Import this project**. The first build starts straight away.
+  </Step>
+</Steps>
+
+## What comes across
+
+- The GitHub repository and the project's production branch.
+- The root directory and the build command.
+- Production environment variables. Variables that start with `NEXT_PUBLIC_` or `VITE_` are also passed to the build, so they reach the browser. See [Environment variables](/apps/environment-variables).
+
+The app listens on port 3000, since Vercel never states a port. Symplax works out how to build and run the app from the repository, the same way as any [GitHub deploy](/apps/deploy-from-github).
+
+### Secrets
+
+Vercel stores **Sensitive** variables as write-only: it does not give the values back to anyone, including you. They appear under **Secrets to supply** with one field each. Fill in what you have to hand. Anything left blank arrives unset and is listed after the import.
+
+### Variables that are left out
+
+- Preview, development and branch-specific variables. Only production is imported.
+- Vercel's system variables, and keys starting with `VERCEL`, `TURBO_` or `NX_DAEMON`.
+- Any value that points at a `*.vercel.app` or `*.vercel.sh` address. These are listed as unset so you can give them the new address.
+
+## What does not come across
+
+<Warning>
+**Rewrites and redirects in `vercel.json` stop working.** Only Vercel reads that file. Your build succeeds and the app runs, but any URL that relied on a rewrite or redirect breaks. The review lists the routes it found. Move them into your app or framework config before you switch traffic. The same goes for a `vercel.ts` config, which Symplax cannot read ahead of time.
+</Warning>
+
+| Item | What happens |
+| --- | --- |
+| `vercel.json` rewrites and redirects | Not applied. See the warning above. |
+| Cron jobs | Not run. Recreate them on the app's **Cron** tab. |
+| Custom domains | Not moved. Point DNS at your server, then [add the domain](/apps/domains). |
+| Deployment protection | No equivalent. The imported app is reachable by anyone with its URL. |
+| Other environments | Only production is imported. |
+| Marketplace storage | Stays with its provider. The variables come across, so the app keeps using the same external database or store. |
+
+### Projects that cannot be imported
+
+The review refuses a project, with the reason, if it:
+
+- has no Git repository connected,
+- builds from GitLab or Bitbucket,
+- runs several services or microfrontends behind one domain (import each service as its own app instead),
+- is built only as serverless functions, for example a Go, Rust or Ruby functions project. These need rewriting as an app with a server and a port.
+
+If Vercel does not say what framework the project uses, Symplax works it out from the repository. A folder of serverless functions rather than an app will build with nothing to run.
+
+## After importing
+
+<Steps>
+  <Step title="Watch the first build">
+    The app shows **Building now, watch the log**.
+  </Step>
+  <Step title="Fill in unset variables">
+    Set any secrets and variables listed as unset on the app's **Variables** tab, then redeploy.
+  </Step>
+  <Step title="Replace vercel.json routing">
+    Test every route that relied on a rewrite or redirect.
+  </Step>
+  <Step title="Recreate cron jobs">
+    Add each Vercel cron as a cron job on the app.
+  </Step>
+  <Step title="Move your domain and delete the token">
+    When everything works on the `*.symplax.app` address, point your DNS at the server, add the domain, and delete the Vercel token.
+  </Step>
+</Steps>

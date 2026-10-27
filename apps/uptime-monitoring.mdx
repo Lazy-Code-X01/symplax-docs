@@ -1,0 +1,58 @@
+---
+title: "Uptime monitoring"
+description: "Symplax checks every deployed app's public URL every minute and emails you when it goes down and when it recovers."
+---
+
+Symplax checks every deployed app from the outside, the way a visitor would. Once a minute it sends a request to the app's public HTTPS address, through DNS, nginx and SSL. That catches problems the deploy health check cannot see, such as an expired domain, a broken nginx config or an app that started fine and then began returning errors.
+
+There is nothing to set up. It is on for every app with a domain, on every plan.
+
+## What is checked
+
+Each minute, Symplax requests:
+
+```text
+https://<your app's domain><health check path>
+```
+
+The domain is your custom domain if you have one, otherwise the free `*.symplax.app` subdomain. The path is the **Health Check** path from your app's **Settings**, or `/` if you have not set one. Each request times out after 10 seconds.
+
+## What counts as down
+
+| Response | Result |
+| --- | --- |
+| Any status below 500, including `301`, `401`, `403` and `404` | Up |
+| A `5xx` status | Down |
+| No response: DNS failure, refused connection, TLS error or timeout | Down |
+
+A `404` or a `401` means your app received the request and answered, which is what is being measured. Redirects are not followed, because a redirect is your app answering.
+
+## When you get an email
+
+Symplax emails the person who created the app:
+
+- **When the app goes down**: after **three failed checks in a row**, about three minutes. The email says what failed, for example the HTTP status or the connection error.
+- **When it recovers**: on the first successful check after it was down. The email says how long it was down.
+
+You get one email for each change, not one every minute while the app stays down.
+
+While an app is down, its status in the dashboard reads **Not responding**, even though its container may still be running.
+
+## Rules that avoid false alarms
+
+Symplax skips an app, instead of calling it down, when:
+
+- **It has no domain.** There is nothing to request from outside.
+- **It is not deployed.** A failed or pending app is not expected to answer.
+- **A deploy is running.** The container is being replaced, and a brief error is expected.
+- **Its server is offline.** The app is not down, its machine is, and one outage should not become one email per app. The app's uptime status shows as unknown.
+
+A single failed check never sends an email, so a restart or one dropped request does not wake you up. A new app does not show as down on its first slow minute either: it stays unknown until it passes or reaches three failures.
+
+## Turn the emails off
+
+Uptime emails follow the **Deployment Updates** switch under **Notification Preferences** in **Settings**, on the **Profile** tab. Turning that off also stops uptime alerts.
+
+<Tip>
+  To monitor other services, or get alerts somewhere other than email, you can install [Uptime Kuma](/apps/one-click-apps) from the marketplace.
+</Tip>

@@ -1,0 +1,115 @@
+---
+title: "Plans"
+description: "What the Free, Pro and Team management plans include, how you pay for them, and what happens when a plan lapses."
+icon: "credit-card"
+---
+
+Your plan decides how many servers and databases you can manage and which features you get.
+It is separate from the cost of any server you buy from Symplax, which comes out of your
+[wallet](/billing/wallet).
+
+## Compare plans
+
+| | Free | Pro | Team |
+| --- | --- | --- | --- |
+| Servers | 1 | 5 | Unlimited |
+| Apps | Unlimited | Unlimited | Unlimited |
+| Deploys per day | 15 | Unlimited | Unlimited |
+| Databases | 2 | 5 | Unlimited |
+| Cron jobs | None | 5 | Unlimited |
+| Automated backups | No | Yes | Yes |
+| AI failure analysis | No | Yes | Yes |
+| Teams and roles | No | No | Yes, unlimited members |
+| API keys | 2 | 10 | 10 |
+| Custom domains, free SSL, `*.symplax.app` subdomain | Yes | Yes | Yes |
+| Auto-deploy on git push, live logs | Yes | Yes | Yes |
+| Support | Community | Email | Priority |
+
+<Note>
+  - **Servers** counts every server on your account, whether you connected it or bought it from
+    Symplax.
+  - **Deploys per day** is a rolling 24 hours, and a failed deploy counts too.
+  - Deleting a database frees its slot on any plan.
+  - Inside a [team](/teams/roles), limits follow the team owner's plan and count the whole team's
+    usage.
+</Note>
+
+## Prices
+
+| Plan | US dollars | Naira |
+| --- | --- | --- |
+| Free | $0 | ₦0 |
+| Pro | $8/month, or $76.80/year | ₦6,000/month |
+| Team | $20/month, or $200/year | ₦15,000/month |
+
+Annual billing is available in US dollars only. Naira plans are monthly. See
+[symplax.com/pricing](https://symplax.com/pricing) for current prices.
+
+## Upgrade
+
+<Steps>
+  <Step title="Open Billing">
+    Go to **Settings** and open the **Billing** tab.
+  </Step>
+  <Step title="Pick a plan">
+    Choose Pro or Team, and monthly or annual if you pay in dollars.
+  </Step>
+  <Step title="Pay">
+    You are sent to a hosted checkout. When the payment clears, your new limits apply straight
+    away.
+  </Step>
+</Steps>
+
+The Free plan needs no payment method.
+
+## How you pay
+
+<Tabs>
+  <Tab title="US dollars">
+    Dollar plans are paid by card through Flutterwave and renew automatically each month or year.
+    You get an email 7 days before each renewal.
+  </Tab>
+  <Tab title="Naira">
+    Naira plans are a one-time payment for one month. Nothing renews on its own, so you pay
+    again each month to keep the plan. You get an email 7 days before it runs out, with a link to
+    renew.
+  </Tab>
+</Tabs>
+
+You get a receipt by email for every plan payment, and your payments are listed in the
+**Billing** tab.
+
+## When a plan lapses
+
+If your plan ends without a renewal, you keep your paid features for a 5 day grace period.
+
+<Steps>
+  <Step title="7 days before the end date">
+    A reminder email that your plan renews or needs renewing.
+  </Step>
+  <Step title="Day 1 after it ends">
+    An email that the plan has expired, with a link to renew.
+  </Step>
+  <Step title="Day 3">
+    A second email: your access ends in 2 days.
+  </Step>
+  <Step title="Day 5">
+    Your account moves to Free.
+  </Step>
+</Steps>
+
+When your account moves to Free:
+
+- Your cron jobs pause.
+- Scheduled database backups pause.
+- Every server except your oldest one is locked. A locked server keeps running, but you cannot
+  deploy to it or change anything on it until you upgrade.
+- Your apps keep running and no data is deleted.
+
+If you own a team, this also applies to the cron jobs and backups on the team's servers.
+
+<Tip>
+  Renew at any time, during the grace period or after it. Renewing unlocks your servers and
+  resumes exactly the cron jobs and backup schedules that billing paused. Anything you had paused
+  yourself stays paused. If you set a new backup schedule while you were on Free, yours is kept.
+</Tip>

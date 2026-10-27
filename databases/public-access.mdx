@@ -1,0 +1,72 @@
+---
+title: "Public access"
+description: "Open a database to the internet for a limited time, optionally only to the IP addresses you allow."
+---
+
+Every database starts private. Its port is closed to the internet, and only apps on the same server can reach it, over Symplax's private network. The [console](/databases/console) and [backups](/databases/backups) keep working while it is private.
+
+Turn on public access when you need to connect from outside that server: your laptop, a GUI client like TablePlus or DBeaver, a local migration, or an app hosted somewhere else.
+
+## Turn on public access
+
+<Steps>
+  <Step title="Open the database">
+    Open the database from **Databases**. On the **Overview** tab, find **Public Access** under **Connection Details**.
+  </Step>
+  <Step title="Choose how long">
+    Click **Enable**, then choose how long it stays on: **1 hour**, **24 hours**, **7 days** or **Never**. The default is 24 hours.
+  </Step>
+  <Step title="Confirm">
+    Click **Enable public access**. The public **URL** now appears in **Connection Details**. Use it from your client.
+  </Step>
+</Steps>
+
+Turning public access on or off only changes the firewall rule for the database's port. The database does not restart, and the password stays the same.
+
+<Warning>
+With public access on and no allowed IPs, anyone on the internet can reach the database's port, and only the password protects it. Add [allowed IPs](#allow-only-specific-ips) whenever you can, and pick the shortest duration that works.
+</Warning>
+
+## Automatic expiry
+
+If you chose 1 hour, 24 hours or 7 days, public access turns off by itself when the time is up. **Connection Details** shows when that will happen.
+
+About an hour before it turns off, you get a notification saying the database will stop being publicly reachable. To keep it on, enable it again from the database page. That starts a new window.
+
+If you choose **Never**, public access stays on with no reminder until you click **Disable**. The dashboard shows a warning that no auto-expiry is set.
+
+## Allow only specific IPs
+
+The **Allowed IPs** section on the **Overview** tab restricts public access to the addresses you list.
+
+<Steps>
+  <Step title="Add an IP">
+    Click **Add IP**. Type the address, or click **Use my current IP** to fill in the address you are browsing from.
+  </Step>
+  <Step title="Label it (optional)">
+    Add a label such as `My laptop` so you remember whose address it is.
+  </Step>
+  <Step title="Save">
+    Click **Add IP**.
+  </Step>
+</Steps>
+
+How the list works:
+
+- With an empty list, public access is open to any IP. The section shows **Accessible from any IP**.
+- As soon as the list has one address, only listed addresses can connect. The section shows **Restricted to N IPs**.
+- You can add IPs while public access is off. They take effect the moment you enable it.
+- The list is kept when you turn public access off, so it is still there next time.
+- Each database can have up to 10 allowed IPs. Enter single addresses, not ranges.
+
+To remove an address, click the cross next to it and then **Confirm**.
+
+<Note>
+Symplax's own servers can always reach the database, whatever is on the list, so the dashboard's console and backups keep working.
+</Note>
+
+## Connecting from an app on another server
+
+An app on a different server reaches the database through its public URL, so that database needs public access on. For a long-running connection like this, add the other server's IP to **Allowed IPs** and choose **Never** as the duration, so the connection does not drop when a window expires.
+
+The simplest setup is still to run the app and its database on the same server, where they talk privately and no port needs to be open. See [Databases](/databases/overview#attach-a-database-to-an-app).

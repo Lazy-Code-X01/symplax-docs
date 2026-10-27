@@ -1,0 +1,69 @@
+---
+title: "Domains and SSL"
+description: "Use the free symplax.app subdomain or point your own domain at your server, with HTTPS set up automatically."
+---
+
+Every app is reachable at a free `*.symplax.app` subdomain with HTTPS. You can add your own domain on top of it, and Symplax gets a Let's Encrypt certificate for it once your DNS points at your server.
+
+## The free subdomain
+
+When you deploy an app, Symplax gives it an address made from the app name, such as `billing-api.symplax.app`. If that name is taken, it adds a short suffix, such as `billing-api-3f9c.symplax.app`.
+
+- HTTPS works straight away, with a certificate Symplax provides for `*.symplax.app`.
+- Plain HTTP requests are redirected to HTTPS.
+- The subdomain is kept for the life of the app, even after you add a custom domain. Both names keep working.
+
+You never need to edit DNS for the subdomain.
+
+## Add a custom domain
+
+<Warning>
+  Symplax does not manage your DNS. You create the record at your domain registrar or DNS provider, such as Cloudflare, Namecheap or Route 53.
+</Warning>
+
+<Steps>
+  <Step title="Enter the domain">
+    Open your app, go to **Settings**, type your domain under **Domain**, for example `app.example.com`, and click **Save**. You can also set it in the **Domain** field when you first deploy.
+  </Step>
+  <Step title="Create an A record">
+    Under **DNS record**, Symplax shows the record to create. It is an **A** record whose value is your server's IP address.
+
+    | Type | Name | Value |
+    | --- | --- | --- |
+    | `A` | `app` | `203.0.113.10` (your server's IP) |
+
+    For the root of a domain, such as `example.com`, most DNS providers use `@` as the name.
+  </Step>
+  <Step title="Wait for the certificate">
+    Click **Re-check** to see whether the domain points at your server. Once it does, Symplax requests a Let's Encrypt certificate for you, usually within about ten minutes. The domain then shows as working over HTTPS.
+  </Step>
+</Steps>
+
+<Note>
+  Use an A record, not a CNAME. The certificate is issued on your server, so the domain has to reach your server directly. If you use Cloudflare, set the record to **DNS only** (grey cloud) so traffic is not proxied through Cloudflare.
+</Note>
+
+## How SSL works
+
+Certificates for custom domains come from Let's Encrypt, issued by certbot on your server and installed into nginx.
+
+- **When you save a domain**, Symplax updates nginx and requests a certificate straight away.
+- **If DNS was not ready**, which is common when a domain still points at your old host, Symplax checks every ten minutes whether the domain now resolves to your server. When it does, it requests the certificate for you, with no redeploy needed. After a failed attempt it waits an hour before trying the same app again, to stay within Let's Encrypt's rate limits.
+- **Renewal** is handled by certbot's scheduled renewal on your server.
+
+The DNS record panel tells you what the domain resolves to today:
+
+- It points at this server: the certificate is on its way, or already working.
+- It points somewhere else: Symplax shows the address it found. Change the record to the one shown.
+- It does not resolve yet: add the record, then allow a few minutes for it to spread.
+
+## Your app must accept its domain
+
+Some frameworks reject requests for hostnames they do not know: Django's `ALLOWED_HOSTS`, Rails' `config.hosts`, Sinatra's host authorization. Before going live, Symplax sends one request with your domain as the `Host` header. If your app accepted the health check but rejects its own domain, the deploy fails with a message telling you which setting to change, instead of going live and blocking every visitor.
+
+Add both your custom domain and your `*.symplax.app` subdomain to that allow-list.
+
+## Limits
+
+- An app has one custom domain, plus its free subdomain.
+- Traffic reaches your app through nginx on your server, which listens on ports 80 and 443. Let's Encrypt validates your domain over port 80.
