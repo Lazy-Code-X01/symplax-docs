@@ -26,11 +26,19 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": ["index", "quickstart"]
+            "pages": [
+              "index",
+              "quickstart"
+            ]
           },
           {
             "group": "Servers",
-            "pages": ["servers/connect", "servers/buy-a-server", "servers/monitoring", "servers/console"]
+            "pages": [
+              "servers/connect",
+              "servers/buy-a-server",
+              "servers/monitoring",
+              "servers/console"
+            ]
           },
           {
             "group": "Apps",
@@ -49,19 +57,35 @@
           },
           {
             "group": "Databases",
-            "pages": ["databases/overview", "databases/console", "databases/backups", "databases/public-access"]
+            "pages": [
+              "databases/overview",
+              "databases/console",
+              "databases/backups",
+              "databases/public-access"
+            ]
           },
           {
             "group": "Move to Symplax",
-            "pages": ["import/railway", "import/digitalocean", "import/vercel"]
+            "pages": [
+              "import/railway",
+              "import/digitalocean",
+              "import/vercel"
+            ]
           },
           {
             "group": "Teams and security",
-            "pages": ["teams/roles", "security/ssh-keys", "security/firewall"]
+            "pages": [
+              "teams/roles",
+              "security/ssh-keys",
+              "security/firewall"
+            ]
           },
           {
             "group": "Billing",
-            "pages": ["billing/plans", "billing/wallet"]
+            "pages": [
+              "billing/plans",
+              "billing/wallet"
+            ]
           }
         ]
       },
@@ -70,11 +94,18 @@
         "groups": [
           {
             "group": "CLI",
-            "pages": ["cli/overview", "cli/ci"]
+            "pages": [
+              "cli/overview",
+              "cli/ci"
+            ]
           },
           {
             "group": "API",
-            "pages": ["api/keys", "api/endpoints", "api/errors"]
+            "pages": [
+              "api/keys",
+              "api/endpoints",
+              "api/errors"
+            ]
           }
         ]
       }
@@ -106,9 +137,6 @@
       "label": "Open dashboard",
       "href": "https://symplax.com/dashboard"
     }
-  },
-  "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude", "perplexity", "cursor", "vscode"]
   },
   "footer": {
     "socials": {
