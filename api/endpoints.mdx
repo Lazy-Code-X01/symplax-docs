@@ -112,6 +112,12 @@ done in the dashboard.
 The status moves through `PREPARING`, `BUILDING` or `PULLING`, `DELIVERING` and `VERIFYING`,
 and ends as `SUCCESS` or `FAILED`.
 
+### Roll back
+
+`POST /deployments/:id/rollback` goes back to the newest successful version that is not the
+one live now. To pick an older one, send its `id` from the app's history:
+`{ "historyId": "..." }`.
+
 ### Read logs
 
 `GET /deployments/:id/logs?tail=100` returns `{ "container": "...", "lines": [ ... ] }`. It asks
