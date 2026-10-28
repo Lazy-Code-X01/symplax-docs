@@ -33,6 +33,48 @@ Base URL: `https://api.symplax.com/api`. Any route not listed here is refused to
 | PATCH | `/deployments/:id` | `apps:write` |
 | GET | `/deployments/:id/logs?tail=200` | `logs:read` |
 
+### Create an app
+
+`POST /deployments` creates an app from a GitHub repository and starts its first deploy.
+
+```json
+{
+  "name": "my-api",
+  "gitUrl": "https://github.com/acme/my-api.git",
+  "serverId": "SERVER_ID",
+  "branch": "main",
+  "port": 3000,
+  "releaseCommand": "npx prisma migrate deploy",
+  "envVars": { "NODE_ENV": "production" },
+  "buildTimeKeys": ["NODE_ENV"],
+  "databaseId": "DATABASE_ID"
+}
+```
+
+| Field | Required | What it does |
+| --- | --- | --- |
+| `name` | Yes | The app's name. Its free address is `https://<name>.symplax.app`. |
+| `gitUrl` | Yes | The repository. Symplax must already have access to it through GitHub. |
+| `serverId` | Yes | The server to run it on, from `GET /servers`. |
+| `branch` | No | Defaults to `main`. |
+| `rootPath` | No | The folder the app lives in, for a monorepo. |
+| `port` | No | The port the app listens on. Defaults to `3000`. |
+| `releaseCommand` | No | Runs before each new version starts, for example a migration. |
+| `envVars` | No | Environment variables, as an object of names and values. |
+| `buildTimeKeys` | No | Names from `envVars` the build needs too. `NEXT_PUBLIC_` and similar browser prefixes are included anyway. |
+| `domain` | No | A custom domain. Point its DNS at the server first. |
+| `healthCheckPath` | No | Path checked before traffic moves to a new version. Defaults to `/`. |
+| `databaseId` | No | A database to link, from `GET /databases`. Needs the `databases:write` scope as well. |
+
+The response is `{ "deployment": { "id": "...", ... } }`. To follow the first deploy, read
+`activeExecutionId` from `GET /deployments/:id` and poll it as below.
+
+<Tip>
+  Pass `databaseId` rather than linking afterwards. The app then has the database's address
+  (for example `DATABASE_URL`) from its first build, and if the database is still starting,
+  the deploy waits for it.
+</Tip>
+
 ### Follow a deploy
 
 `POST /deployments/:id/redeploy` returns an `executionId`. Poll
@@ -69,6 +111,24 @@ your server for the logs and waits for the answer, up to about 20 seconds.
 | POST | `/databases/:id/stop` | `databases:write` |
 | POST | `/databases/:id/backups` | `databases:write` |
 | POST | `/databases/:id/link-app` | `databases:write` |
+
+### Create a database
+
+`POST /databases` takes `name`, `serverId` and `engine`, and an optional `version`:
+
+```json
+{ "name": "my-db", "serverId": "SERVER_ID", "engine": "POSTGRES", "version": "17" }
+```
+
+`engine` is one of `POSTGRES`, `MYSQL`, `MARIADB`, `MONGODB`, `REDIS`, `VALKEY` or `CLICKHOUSE`.
+The response is `{ "database": { "id": "...", "status": "provisioning", ... } }`. It is ready
+when `GET /databases/:id` shows `status` as `running`, usually within a minute.
+
+### Link a database to an app
+
+`POST /databases/:id/link-app` with `{ "deploymentId": "APP_ID" }` sets the app's connection
+variable: `DATABASE_URL` for PostgreSQL, `MYSQL_URL` for MySQL and MariaDB, `MONGODB_URL`,
+`REDIS_URL` or `CLICKHOUSE_URL`. Redeploy the app to apply it.
 
 ## Servers
 
