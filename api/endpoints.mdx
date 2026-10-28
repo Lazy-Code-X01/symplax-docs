@@ -31,6 +31,9 @@ Base URL: `https://api.symplax.com/api`. Any route not listed here is refused to
 | POST | `/deployments/:id/rollback` | `apps:deploy` |
 | POST | `/deployments` | `apps:write` |
 | PATCH | `/deployments/:id` | `apps:write` |
+| POST | `/deployments/:id/cron-jobs` | `apps:write` |
+| PATCH | `/deployments/:id/cron-jobs/:jobId` | `apps:write` |
+| POST | `/deployments/:id/cron-jobs/:jobId/toggle` | `apps:write` |
 | GET | `/deployments/:id/logs?tail=200` | `logs:read` |
 
 ### Create an app
@@ -74,6 +77,23 @@ The response is `{ "deployment": { "id": "...", ... } }`. To follow the first de
   (for example `DATABASE_URL`) from its first build, and if the database is still starting,
   the deploy waits for it.
 </Tip>
+
+### Cron jobs
+
+`POST /deployments/:id/cron-jobs` schedules a command to run inside the app:
+
+```json
+{ "name": "reminders", "schedule": "*/10 * * * *", "command": "node scripts/remind.js" }
+```
+
+`schedule` is a standard five-field cron expression. `PATCH /deployments/:id/cron-jobs/:jobId`
+changes any of the three fields, and `POST .../toggle` pauses or resumes the job. Deleting one is
+done in the dashboard.
+
+<Note>
+  Cron jobs need the Pro plan or higher. On Free the call returns `403` with
+  `"code": "PLAN_LIMIT_REACHED"` and a `message` saying so.
+</Note>
 
 ### Follow a deploy
 
