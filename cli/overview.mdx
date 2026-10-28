@@ -1,6 +1,6 @@
 ---
 title: "CLI"
-description: "Deploy, read logs, restart and roll back your Symplax apps from a terminal, CI or AI assistant."
+description: "Create, deploy and configure your Symplax apps from a terminal, CI or AI assistant."
 icon: "terminal"
 ---
 
@@ -48,11 +48,43 @@ can see and revoke it in **Settings**, **API Keys**. `symplax logout` forgets it
 | `symplax servers` | Your servers |
 | `symplax db list` | Your databases |
 | `symplax db create <name> --engine postgres@17` | Create a database (add `--server <name>` if you have more than one) |
+| `symplax apps create <name> --repo owner/repo` | Create an app from GitHub, deploy it and follow the build |
+| `symplax env [app]` | The app's environment variables |
+| `symplax env set <app> KEY=value` | Set one or more variables |
+| `symplax env unset <app> KEY` | Remove one or more variables |
+| `symplax env import <app> [file]` | Set every variable in a `.env` file |
+| `symplax cron [app]` | The app's cron jobs and how they last ran |
+| `symplax cron add <app> --schedule "..." --command "..."` | Schedule a command inside the app |
+| `symplax cron edit <app> <job>` | Change a job's `--schedule`, `--command` or `--name` |
+| `symplax cron pause <app> <job>` | Pause a job, and `resume` to start it again |
+| `symplax cron logs <app> <job>` | A job's recent runs and their output |
+| `symplax domain [app]` | The DNS record to create, and whether HTTPS works |
+| `symplax domain set <app> <domain>` | Use your own domain, with HTTPS set up for you |
 | `symplax whoami` | The account and key in use |
 | `symplax logout` | Forget the saved login |
 
 Leave out the app and you get a list to pick from with the arrow keys. You can also name an app
 in any case, by the start of a unique name, or by its id.
+
+## Set up a new app
+
+```bash
+symplax db create main --engine postgres@17
+symplax apps create my-api --repo acme/my-api --db main --env-file .env.production \
+  --release "npx prisma migrate deploy"
+```
+
+`apps create` makes the app, starts its first deploy and follows it. `--db` links the database
+before that first build, so `DATABASE_URL` is already set when the release command runs. It also
+takes `--branch`, `--server`, `--port`, `--root` for a monorepo, and `-e KEY=value`, repeated for
+each variable.
+
+Changes made with `symplax env` apply on the next deploy: run `symplax deploy <app>` after them.
+
+<Note>
+  Cron jobs need the Pro plan or higher. Deleting a cron job is done in the dashboard, because no
+  API key can delete anything; `symplax cron pause` stops one from the terminal.
+</Note>
 
 ## Following a deploy
 
@@ -88,6 +120,7 @@ with code `1`. Press `Ctrl+C` to stop following; the deploy carries on.
 </Tip>
 
 <Note>
-  The CLI cannot yet set environment variables, create apps, or manage domains, cron jobs or
-  backups. Use the dashboard for those.
+  Each command needs its scope on the login: `apps:write` to create apps or change variables,
+  cron jobs and domains, and `databases:write` as well to create or link a database. If one is
+  missing, the CLI says which. Backups are managed in the dashboard.
 </Note>
