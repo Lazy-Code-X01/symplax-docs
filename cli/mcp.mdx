@@ -19,19 +19,19 @@ cron job, in plain words.
     <Tabs>
       <Tab title="Claude Code">
         ```bash
-        claude mcp add symplax -- npx -y symplax mcp
+        claude mcp add --scope user symplax -- npx -y symplax@latest mcp
         ```
       </Tab>
       <Tab title="Cursor">
         Add this to `~/.cursor/mcp.json`:
 
         ```json
-        { "mcpServers": { "symplax": { "command": "npx", "args": ["-y", "symplax", "mcp"] } } }
+        { "mcpServers": { "symplax": { "command": "npx", "args": ["-y", "symplax@latest", "mcp"] } } }
         ```
       </Tab>
       <Tab title="Codex">
         ```bash
-        codex mcp add symplax -- npx -y symplax mcp
+        codex mcp add symplax -- npx -y symplax@latest mcp
         ```
       </Tab>
     </Tabs>
