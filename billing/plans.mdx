@@ -26,8 +26,8 @@ It is separate from the cost of any server you buy from Symplax, which comes out
 | Support | Community | Email | Priority |
 
 <Note>
-  - **Servers** counts every server on your account, whether you connected it or bought it from
-    Symplax.
+  - **Servers** counts the servers you connect. Servers you buy from Symplax do not count: you
+    can buy as many as you like on any plan, and pay for each by the hour.
   - **Deploys per day** is a rolling 24 hours, and a failed deploy counts too.
   - Deleting a database frees its slot on any plan.
   - Inside a [team](/teams/roles), limits follow the team owner's plan and count the whole team's
@@ -102,8 +102,9 @@ When your account moves to Free:
 
 - Your cron jobs pause.
 - Scheduled database backups pause.
-- Every server except your oldest one is locked. A locked server keeps running, but you cannot
-  deploy to it or change anything on it until you upgrade.
+- Every connected server except your oldest one is locked. A locked server keeps running, but
+  you cannot deploy to it or change anything on it until you upgrade. Servers you bought from
+  Symplax are never locked.
 - Your apps keep running and no data is deleted.
 
 If you own a team, this also applies to the cron jobs and backups on the team's servers.
