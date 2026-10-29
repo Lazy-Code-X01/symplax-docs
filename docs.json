@@ -96,6 +96,7 @@
             "group": "CLI",
             "pages": [
               "cli/overview",
+              "cli/mcp",
               "cli/ci"
             ]
           },

@@ -1,0 +1,78 @@
+---
+title: "AI assistants (MCP)"
+description: "Let Claude Code, Cursor, Codex and other AI assistants deploy and manage your Symplax apps through the Model Context Protocol."
+icon: "sparkles"
+---
+
+The Symplax CLI includes an MCP server. Add it to your AI assistant once, and you can ask it to
+deploy an app, read why a deploy failed, set environment variables, create a database or add a
+cron job, in plain words.
+
+## Set it up
+
+<Steps>
+  <Step title="Log in">
+    Run `npx symplax login` and approve it in your browser. Give the login the permissions you
+    want your assistant to have. See [the CLI](/cli/overview).
+  </Step>
+  <Step title="Add Symplax to your assistant">
+    <Tabs>
+      <Tab title="Claude Code">
+        ```bash
+        claude mcp add symplax -- npx -y symplax mcp
+        ```
+      </Tab>
+      <Tab title="Cursor">
+        Add this to `~/.cursor/mcp.json`:
+
+        ```json
+        { "mcpServers": { "symplax": { "command": "npx", "args": ["-y", "symplax", "mcp"] } } }
+        ```
+      </Tab>
+      <Tab title="Codex">
+        ```bash
+        codex mcp add symplax -- npx -y symplax mcp
+        ```
+      </Tab>
+    </Tabs>
+  </Step>
+  <Step title="Ask">
+    "Deploy my-api and tell me if it worked." "Why did the last deploy of shop fail?" "Create a
+    Postgres database and link it to my-api."
+  </Step>
+</Steps>
+
+## What it can do
+
+| Tool | What it does |
+| --- | --- |
+| `list_apps`, `get_app` | Your apps, their status, live URL and settings |
+| `create_app` | Create an app from GitHub, optionally with a database linked |
+| `deploy_app`, `wait_for_deploy` | Deploy and follow the build until it is live |
+| `get_logs` | The running app's recent output |
+| `restart_app`, `rollback_app` | Restart, or go back to the last good version |
+| `list_env`, `set_env`, `unset_env` | Environment variables |
+| `list_databases`, `create_database`, `link_database` | Databases |
+| `list_cron_jobs`, `add_cron_job`, `set_cron_job_paused` | Cron jobs (Pro plan or higher) |
+| `domain_status`, `set_domain` | Custom domains and the DNS record to create |
+| `list_servers`, `whoami` | Your servers, and what the login may do |
+
+When a deploy fails, the assistant gets the reason Symplax found and the end of the build log,
+so it can usually tell you what to fix.
+
+## What it cannot do
+
+- It can only do what your login's permissions allow. If a permission is missing, the tool says
+  which one, and you can run `symplax login` again to add it.
+- It cannot delete anything: apps, databases, cron jobs or servers.
+- Environment variable values stay hidden unless the login has the `secrets:read` permission.
+
+<Note>
+  Changes such as deploys and rollbacks are marked as actions, so your assistant asks before it
+  runs them.
+</Note>
+
+<Tip>
+  In CI or on a shared machine, set `SYMPLAX_API_KEY` instead of logging in. The MCP server uses
+  it the same way the CLI does.
+</Tip>
