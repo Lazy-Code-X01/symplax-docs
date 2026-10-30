@@ -12,8 +12,9 @@ cron job, in plain words.
 
 <Steps>
   <Step title="Log in">
-    Run `npx symplax login` and approve it in your browser. Give the login the permissions you
-    want your assistant to have. See [the CLI](/cli/overview).
+    Run `npx symplax@latest login --ai` and approve it in your browser. It ticks the permissions
+    an assistant needs to make changes (create apps, set variables, manage databases); untick any
+    you do not want. See [the CLI](/cli/overview).
   </Step>
   <Step title="Add Symplax to your assistant">
     <Tabs>
@@ -55,7 +56,8 @@ cron job, in plain words.
 | `list_databases`, `create_database`, `link_database` | Databases |
 | `list_cron_jobs`, `add_cron_job`, `set_cron_job_paused` | Cron jobs (Pro plan or higher) |
 | `domain_status`, `set_domain` | Custom domains and the DNS record to create |
-| `list_servers`, `whoami` | Your servers, and what the login may do |
+| `list_servers`, `get_server` | Your servers, their readings, apps, and for a server bought from Symplax its monthly bandwidth |
+| `whoami` | What the login may do |
 
 When a deploy fails, the assistant gets the reason Symplax found and the end of the build log,
 so it can usually tell you what to fix.
@@ -63,7 +65,7 @@ so it can usually tell you what to fix.
 ## What it cannot do
 
 - It can only do what your login's permissions allow. If a permission is missing, the tool says
-  which one, and you can run `symplax login` again to add it.
+  which one, and you can run `symplax login --ai` again to add it.
 - It cannot delete anything: apps, databases, cron jobs or servers.
 - Environment variable values stay hidden unless the login has the `secrets:read` permission.
 
@@ -71,6 +73,11 @@ so it can usually tell you what to fix.
   Changes such as deploys and rollbacks are marked as actions, so your assistant asks before it
   runs them.
 </Note>
+
+<Tip>
+  The dashboard has the same setup under **AI assistants**, with copy buttons. In **Settings**,
+  **API Keys**, a key your assistant used shows "by an AI assistant".
+</Tip>
 
 <Tip>
   In CI or on a shared machine, set `SYMPLAX_API_KEY` instead of logging in. The MCP server uses
