@@ -57,6 +57,7 @@ cron job, in plain words.
 | `list_cron_jobs`, `add_cron_job`, `set_cron_job_paused` | Cron jobs (Pro plan or higher) |
 | `domain_status`, `set_domain` | Custom domains and the DNS record to create |
 | `list_servers`, `get_server` | Your servers, their readings, apps, and for a server bought from Symplax its monthly bandwidth |
+| `preview_change` | What a change will do before it is made: the commit and command a deploy runs, a before and after for variables, the version a rollback goes back to |
 | `whoami` | What the login may do |
 
 When a deploy fails, the assistant gets the reason Symplax found and the end of the build log,
@@ -70,8 +71,9 @@ so it can usually tell you what to fix.
 - Environment variable values stay hidden unless the login has the `secrets:read` permission.
 
 <Note>
-  Changes such as deploys and rollbacks are marked as actions, so your assistant asks before it
-  runs them.
+  Before any change, your assistant shows a preview of what it will do (for a deploy, the commit
+  going out and any migration command it runs), and changes are marked as actions so it asks
+  before running them.
 </Note>
 
 <Tip>

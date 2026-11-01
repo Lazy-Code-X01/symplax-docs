@@ -35,6 +35,7 @@ Base URL: `https://api.symplax.com/api`. Any route not listed here is refused to
 | PATCH | `/deployments/:id/cron-jobs/:jobId` | `apps:write` |
 | POST | `/deployments/:id/cron-jobs/:jobId/toggle` | `apps:write` |
 | GET | `/deployments/:id/logs?tail=200` | `logs:read` |
+| POST | `/assistant/preview` | `apps:read` |
 
 ### Create an app
 
@@ -117,6 +118,13 @@ and ends as `SUCCESS` or `FAILED`.
 `POST /deployments/:id/rollback` goes back to the newest successful version that is not the
 one live now. To pick an older one, send its `id` from the app's history:
 `{ "historyId": "..." }`.
+
+### Preview a change
+
+`POST /assistant/preview` with `{ "name": "deploy_app", "input": { "app": "my-api" } }` says what
+a change would do before you make it: the commit a deploy ships and the release command it runs,
+a before and after for variables (secret values hidden), or the version a rollback goes back to.
+It changes nothing. `name` is one of the [MCP tool names](/cli/mcp) that make changes.
 
 ### Read logs
 
