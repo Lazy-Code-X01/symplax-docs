@@ -60,6 +60,7 @@
             "pages": [
               "databases/overview",
               "databases/console",
+              "databases/import-data",
               "databases/backups",
               "databases/public-access"
             ]

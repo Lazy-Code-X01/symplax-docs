@@ -1,0 +1,89 @@
+---
+title: "Import data"
+description: "Copy a database from Railway, Supabase, Neon, Render or any other host into a Symplax database."
+---
+
+Moving from another host? Create an empty database in Symplax, then copy your old database into it. Your server does the copy itself, with the engine's own tools, so your data goes straight from the old host to your server.
+
+It works for PostgreSQL, MySQL, MariaDB, MongoDB, Redis and Valkey.
+
+<Note>
+The old database is only read, never changed. The address you paste is used for the copy and is not stored.
+</Note>
+
+## Before you start
+
+- **Create the new database first,** with the same engine. For PostgreSQL, pick the same version as the old one or newer: Symplax tells you if the old one is too new to copy into it.
+- **Get an address your server can reach over the internet.** Internal addresses, such as Railway's `*.railway.internal`, only work inside that host.
+- **Your server needs agent 2.1.54 or later.** If it is older, Symplax asks you to update it from the server's **Settings**.
+- **On a team,** owners, admins and developers can import. Viewers cannot.
+
+### Where to find the address
+
+| Host | Where |
+| --- | --- |
+| Railway | The database's **Variables**, the `DATABASE_PUBLIC_URL` (or other `*_PUBLIC_URL`) one |
+| Supabase | **Connect**, then the **Session pooler** connection string |
+| Neon | The connection string on the project dashboard |
+| Render | **External Database URL** on the database's page |
+
+Any address in the engine's usual form works:
+
+| Engine | Address |
+| --- | --- |
+| PostgreSQL | `postgresql://user:password@host:5432/database` |
+| MySQL, MariaDB | `mysql://user:password@host:3306/database` |
+| MongoDB | `mongodb://user:password@host:27017/database` |
+| Redis, Valkey | `redis://default:password@host:6379` |
+
+For MySQL, MariaDB and MongoDB, put the database name at the end of the address. Without it, Symplax cannot tell which database to copy.
+
+## Copy it
+
+<Steps>
+  <Step title="Open Import data">
+    Open the new database from **Databases** and click the **Import data** icon at the right of its tabs.
+  </Step>
+  <Step title="Check the old database">
+    Paste the address and click **Check**. Symplax connects from your server and shows the old database's version, its size, and its tables (or collections, or keys) with their row counts.
+
+    If the new database already holds data, you are asked to confirm. Tables with the same name are replaced by the copy.
+  </Step>
+  <Step title="Start copying">
+    Click **Start copying**. The log shows each table as it goes. The copy runs on your server, so you can close the window and it keeps going.
+  </Step>
+  <Step title="Compare the counts">
+    When it finishes, Symplax counts the rows on both sides, table by table. If a count differs, the old database probably changed during the copy: copy again to bring them in line.
+  </Step>
+</Steps>
+
+## Switch your app over
+
+Copying the data does not move your app. It keeps using the old database until you point it at the new one:
+
+1. Click **Use with an app** at the end of the import, or go to the database's **Overview**.
+2. Link the database to your app. This sets its `DATABASE_URL` (or the engine's equivalent).
+3. Redeploy the app.
+
+<Tip>
+Writes made to the old database after the copy starts are not included. Stop the app that uses it first, or copy again just before you switch.
+</Tip>
+
+## What is copied
+
+| Engine | How | What comes along |
+| --- | --- | --- |
+| PostgreSQL | `pg_dump` into `psql` | Tables, rows, keys, constraints, indexes, views, sequences |
+| MySQL, MariaDB | `mysqldump` / `mariadb-dump` into the client | Tables, rows, keys, indexes, views, routines, triggers, events |
+| MongoDB | `mongodump` into `mongorestore` | Collections, documents, indexes |
+| Redis, Valkey | A snapshot of the old database, loaded into the new one | Every key in every numbered database |
+
+- **Owners and permissions are not copied.** Everything belongs to the new database's own user. For MySQL and MariaDB, views and routines lose the old owner (`DEFINER`) for the same reason.
+- **Extensions or roles the new database does not have are skipped,** and the import lists what could not be applied.
+- **Redis replaces the whole dataset,** since a snapshot is all or nothing. Some hosts, Upstash among them, do not allow snapshots, so they cannot be copied this way.
+
+## Limits
+
+- One copy at a time per database.
+- A copy that runs for more than six hours is stopped.
+- Importing is done from the dashboard. It is not available through API keys, the CLI or the MCP server yet.
