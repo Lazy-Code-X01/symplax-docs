@@ -23,25 +23,40 @@ You never need to edit DNS for the subdomain.
 
 <Steps>
   <Step title="Enter the domain">
-    Open your app, go to **Settings**, type your domain under **Domain**, for example `app.example.com`, and click **Save**. You can also set it in the **Domain** field when you first deploy.
+    Open your app, go to **Settings**, click **Add domain** under **Domains**, type your domain, for example `example.com`, and click **Add**. You can also set it in the **Domain** field when you first deploy.
   </Step>
   <Step title="Create an A record">
-    Under **DNS record**, Symplax shows the record to create. It is an **A** record whose value is your server's IP address.
+    Until the domain is set up, its row shows the record to create. It is an **A** record whose value is your server's IP address.
 
     | Type | Name | Value |
     | --- | --- | --- |
-    | `A` | `app` | `203.0.113.10` (your server's IP) |
+    | `A` | `@` | `203.0.113.10` (your server's IP) |
 
-    For the root of a domain, such as `example.com`, most DNS providers use `@` as the name.
+    The name is `@` for the root of a domain, such as `example.com`, and the part before it for anything else, such as `app` for `app.example.com`.
   </Step>
   <Step title="Wait for the certificate">
-    Click **Re-check** to see whether the domain points at your server. Once it does, Symplax requests a Let's Encrypt certificate for you, usually within about ten minutes. The domain then shows as working over HTTPS.
+    Click **Refresh** to see whether the domain points at your server. Once it does, Symplax requests a Let's Encrypt certificate for you, usually within about ten minutes. The row then shows **Valid Configuration**.
   </Step>
 </Steps>
 
 <Note>
   Use an A record, not a CNAME. The certificate is issued on your server, so the domain has to reach your server directly. If you use Cloudflare, set the record to **DNS only** (grey cloud) so traffic is not proxied through Cloudflare.
 </Note>
+
+## www and the root domain
+
+When your domain is the root of a site, such as `example.com`, Symplax also answers on `www.example.com` and redirects it to `example.com` with a permanent (301) redirect that keeps the page and query. If your domain is `www.example.com`, the root `example.com` redirects to it instead.
+
+To use it, create a second A record:
+
+| Type | Name | Value |
+| --- | --- | --- |
+| `A` | `www` | `203.0.113.10` (your server's IP) |
+
+- The redirect gets its own certificate, so your main domain works whether or not this record exists. Until you add it, the www row shows as not set up.
+- To turn it off, click **Edit** on the www row, then **Remove**. **Add redirect** turns it back on.
+- Subdomains such as `app.example.com` do not get a www redirect.
+- It needs agent 2.1.52 or later on your server. On an older agent, the www row asks you to update it from the server's **Settings**.
 
 ## How SSL works
 
@@ -51,7 +66,7 @@ Certificates for custom domains come from Let's Encrypt, issued by certbot on yo
 - **If DNS was not ready**, which is common when a domain still points at your old host, Symplax checks every ten minutes whether the domain now resolves to your server. When it does, it requests the certificate for you, with no redeploy needed. After a failed attempt it waits an hour before trying the same app again, to stay within Let's Encrypt's rate limits.
 - **Renewal** is handled by certbot's scheduled renewal on your server.
 
-The DNS record panel tells you what the domain resolves to today:
+Each row tells you what its name resolves to today:
 
 - It points at this server: the certificate is on its way, or already working.
 - It points somewhere else: Symplax shows the address it found. Change the record to the one shown.
@@ -65,5 +80,5 @@ Add both your custom domain and your `*.symplax.app` subdomain to that allow-lis
 
 ## Limits
 
-- An app has one custom domain, plus its free subdomain.
+- An app has one custom domain, plus its www redirect and its free subdomain.
 - Traffic reaches your app through nginx on your server, which listens on ports 80 and 443. Let's Encrypt validates your domain over port 80.
