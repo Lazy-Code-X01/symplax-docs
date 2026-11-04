@@ -50,6 +50,7 @@
               "apps/domains",
               "apps/rollbacks",
               "apps/release-commands",
+              "apps/workers",
               "apps/cron-jobs",
               "apps/uptime-monitoring",
               "apps/one-click-apps"

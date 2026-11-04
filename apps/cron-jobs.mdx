@@ -74,5 +74,5 @@ Symplax writes each job into the cron daemon on your server. When it fires, it r
 ## Good to know
 
 - An app is one container, so a job shares its memory and CPU with the app. Keep heavy jobs to quiet hours.
-- Long-running workers that never exit are not a fit for cron. Symplax does not run background worker apps yet, because every app must serve HTTP.
+- Long-running processes that never exit, like queue workers, are not a fit for cron. Use [workers](/apps/workers) instead.
 - For a one-off task on each deploy, such as migrations, use a [release command](/apps/release-commands) instead.

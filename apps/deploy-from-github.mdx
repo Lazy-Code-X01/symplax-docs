@@ -9,7 +9,7 @@ icon: "github"
 You point Symplax at a GitHub repository and a server. Symplax builds a Docker image from your code on its own build machines, ships the image to your server, health checks it, and only then sends traffic to it. Your server never compiles anything.
 
 <Note>
-  An app is one container on one server. Symplax deploys from GitHub only: GitLab and Bitbucket are not supported. Your app must answer HTTP on a port. Background workers, bots and queue consumers that serve no HTTP cannot pass the health check, so they are not supported yet.
+  An app is one container on one server. Symplax deploys from GitHub only: GitLab and Bitbucket are not supported. Your app must answer HTTP on a port. An app that serves no HTTP at all, such as a bot or a queue consumer on its own, cannot pass the health check, so it is not supported yet. To run a queue worker beside a web app, add it as a [worker](/apps/workers).
 </Note>
 
 ## Deploy your first app
