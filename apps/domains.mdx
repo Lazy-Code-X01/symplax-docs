@@ -35,7 +35,7 @@ You never need to edit DNS for the subdomain.
     The name is `@` for the root of a domain, such as `example.com`, and the part before it for anything else, such as `app` for `app.example.com`.
   </Step>
   <Step title="Wait for the certificate">
-    Click **Refresh** to see whether the domain points at your server. Once it does, Symplax requests a Let's Encrypt certificate for you, usually within about ten minutes. The row then shows **Valid Configuration**.
+    Click **Refresh** to see whether the domain points at your server. Once it does, Symplax requests a Let's Encrypt certificate for you, usually within a couple of minutes. The row then shows **Valid Configuration**.
   </Step>
 </Steps>
 
@@ -63,7 +63,8 @@ To use it, create a second A record:
 Certificates for custom domains come from Let's Encrypt, issued by certbot on your server and installed into nginx.
 
 - **When you save a domain**, Symplax updates nginx and requests a certificate straight away.
-- **If DNS was not ready**, which is common when a domain still points at your old host, Symplax checks every ten minutes whether the domain now resolves to your server. When it does, it requests the certificate for you, with no redeploy needed. After a failed attempt it waits an hour before trying the same app again, to stay within Let's Encrypt's rate limits.
+- **If DNS was not ready**, which is common when a domain still points at your old host, Symplax keeps checking whether the domain now resolves to your server: every minute for the first hour after you add it, then every ten minutes. When it does, it requests the certificate for you, with no redeploy needed. After a failed attempt it waits 15 minutes in that first hour and an hour after that, to stay within Let's Encrypt's rate limits.
+- **If something else is in the way**, the Domains card says so: a CAA record that does not allow Let's Encrypt, an IPv6 (AAAA) record pointing elsewhere, or the reason the last attempt failed.
 - **Renewal** is handled by certbot's scheduled renewal on your server.
 
 Each row tells you what its name resolves to today:
