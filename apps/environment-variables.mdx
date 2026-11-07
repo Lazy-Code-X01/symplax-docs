@@ -12,14 +12,16 @@ Every app has its own environment variables. Symplax passes them to your contain
     Open your app and go to the **Variables** tab.
   </Step>
   <Step title="Add your variables">
-    Click **Add Variable** and fill in a name and value. To add many at once, paste a block of `KEY=VALUE` lines into a field and Symplax splits them into rows.
+    Click **New Variable**, type a name and a value, and choose **App only** or **App and build**. Press Enter or click **Add**. To add many at once, paste a whole `.env` file into the name field: every `KEY=VALUE` line becomes a variable, and comments and blank lines are skipped.
   </Step>
   <Step title="Save and redeploy">
-    Click **Save & Redeploy**. Changes reach your app on its next deploy, so a saved variable is not live until the redeploy finishes.
+    Your changes wait in a bar at the bottom of the list. Click **Save & Redeploy** to apply them, **Save** to keep them for the next deploy, or **Discard** to drop them. A saved variable is not live until the app redeploys.
   </Step>
 </Steps>
 
-You can also add variables in the last step of **Deploy App**, before the first deploy. Owners and admins can download all of an app's variables as a `.env` file from the same tab.
+To change a variable, click the pencil icon on its row. The eye icon shows a value and the copy icon copies it. **Search variables** and the filter (**All variables**, **App only**, **App and build**) narrow a long list.
+
+You can also add variables in the last step of **Deploy App**, before the first deploy. Owners and admins can click **Export** to copy every variable or download them as a `.env` file.
 
 <Tip>
   Setting `PORT` also tells Symplax which port to route traffic to. See [Port and health check](/apps/deploy-from-github#port-and-health-check).
@@ -49,7 +51,7 @@ Symplax handles both:
     These values end up in your image and in the JavaScript sent to every visitor. Never put a secret behind one of these prefixes.
   </Tab>
   <Tab title="Other variables you mark">
-    A build sometimes needs a variable with any other name, such as `SENTRY_AUTH_TOKEN` or `API_BASE`. Hover the variable in the Variables tab and click **Build** to pass it to the build as a build argument too. Click the badge again to stop.
+    A build sometimes needs a variable with any other name, such as `SENTRY_AUTH_TOKEN` or `API_BASE`. Each row in the Variables tab has an **App** or **Build** badge: click **App** to pass that variable to the build as a build argument too, and click **Build** to stop. When you add a variable, choosing **App and build** does the same.
 
     Like the prefixed ones, a marked variable is recorded in the image, so only mark values that are safe to keep there.
   </Tab>
@@ -64,9 +66,24 @@ Symplax handles both:
   If your build connects to a Symplax database on the same server, the internal hostname does not resolve on the build machine. Symplax points the build at the database's public address only when you have already turned on [public access](/databases/public-access) for it. It never opens a database for a build.
 </Note>
 
-## Linked databases
+## Connect a database
 
-When you link a managed database to an app, Symplax adds its connection string for you: `DATABASE_URL` for PostgreSQL, `MYSQL_URL` for MySQL and MariaDB, `MONGODB_URL` for MongoDB, `REDIS_URL` for Redis and Valkey, and `CLICKHOUSE_URL` for ClickHouse. Variables that Symplax manages, such as these, are locked in the Variables tab. Redeploy the app to apply a new link. See [Databases](/databases/overview).
+Click **Connect Database** in the Variables tab to give the app a managed database's connection string, without copying it by hand.
+
+<Steps>
+  <Step title="Pick a database">
+    The list shows your databases. One you cannot use from this app stays in the list, greyed out with the reason: it is stopped, or it is on another server with public access off.
+  </Step>
+  <Step title="Connect">
+    Click **Connect and redeploy** to apply it straight away, or **Connect only** to apply it on the next deploy.
+  </Step>
+</Steps>
+
+Symplax sets one variable for the engine: `DATABASE_URL` for PostgreSQL, `MYSQL_URL` for MySQL and MariaDB, `MONGODB_URL` for MongoDB, `REDIS_URL` for Redis and Valkey, and `CLICKHOUSE_URL` for ClickHouse. If the app already has that variable, it is replaced, and the dialog says so before you connect.
+
+The address depends on where the app runs. An app on the same server as the database gets the internal address. An app on another server gets the public address, which only works while the database's [public access](/databases/public-access) is on. If that public access is set to expire, the dialog tells you when the app will lose the connection.
+
+Removing a variable that a database, a secret or your mail settings provide asks you to confirm first. Mail variables are edited from your mail settings, not here. See [Databases](/databases/overview#connect-a-database-to-an-app).
 
 ## Encryption
 

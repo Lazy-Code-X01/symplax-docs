@@ -38,7 +38,7 @@ PostgreSQL 18 and MySQL 9 need server agent 2.1.46 or newer. If your server runs
     - **Database name**: a name for the database, for example `my-database`.
     - **Server**: the server the database runs on. Pick the server your app runs on.
     - **Engine** and **Version**.
-    - **Inject into app** (optional): an app that should get the connection string. See [Attach a database to an app](#attach-a-database-to-an-app).
+    - **Inject into app** (optional): an app that should get the connection string. See [Connect a database to an app](#connect-a-database-to-an-app).
   </Step>
   <Step title="Create it">
     Click **Create Database**. Symplax pulls the image, creates the container and runs health checks. The database shows as **Running** when it is ready.
@@ -55,16 +55,22 @@ Each database keeps its data on a Docker volume on your server. The data survive
 
 ## Connection details
 
-Open a database to see **Connection Details** on its **Overview** tab: host, port, database name, username and password, plus two connection URLs.
+Open a database to see **Connection Details** on its **Overview** tab.
 
-- **APP URL (internal)**: use this inside an app deployed on the **same server**. It points at the database's container name on Symplax's private network, so it only works from that server.
-- **URL**: the public connection string, for your laptop or tools like TablePlus, pgAdmin or DBeaver. It appears only while [public access](/databases/public-access) is on, because the port is closed to the internet otherwise.
+- **APP URL (internal)**: use this inside an app deployed on the **same server**. It points at the database's container name on Symplax's private network, so it only works from that server. While public access is off, it is the first thing shown.
+- **HOST**, **PORT** and **URL**: the public address and connection string, for your laptop or tools like TablePlus, pgAdmin or DBeaver. They appear only while [public access](/databases/public-access) is on, because the port is closed to the internet otherwise.
+
+The database name, username and password are shown too.
 
 <Warning>
 Do not use the public URL inside an app on the same server. Apps on that server cannot reach the database through the server's public IP. Use the internal URL instead.
 </Warning>
 
-**Quick Connect** on the same tab shows ready-to-copy snippets for common clients, such as Prisma, `pg`, `psycopg2` and `ioredis`.
+**Quick Connect** on the same tab shows ready-to-copy snippets for common clients, such as Prisma, `pg`, `psycopg2` and `ioredis`. They use the address you can actually reach: the internal one while public access is off.
+
+<Note>
+Managed PostgreSQL does not use SSL yet. If your app or its driver forces SSL, connecting fails with an error such as `The server does not support SSL connections`. Add `?sslmode=disable` to the end of the connection URL, or turn SSL off in your client's settings.
+</Note>
 
 ### Who can see the password
 
@@ -76,9 +82,14 @@ The password and both connection URLs are shown only to:
 
 Everyone else with access to the database sees the host, port and database name, and can still use the database through the dashboard. API keys need the `secrets:read` scope to read a password.
 
-## Attach a database to an app
+## Connect a database to an app
 
-Symplax can write the connection string into an app's environment variables for you. In the database's **Overview** tab, find **Linked Apps**, select the app and click **Inject**. You can also pick the app in **Inject into app** when you create the database.
+Symplax writes the connection string into an app's environment variables for you, with the address that works from where the app runs. You can do it from four places:
+
+- **The database page**: **Connect to an app** is the first card on the **Overview** tab. Select the app and click **Connect**.
+- **The app**: in its **Variables** tab, click **Connect Database**. See [Environment variables](/apps/environment-variables#connect-a-database).
+- **A new app**: when you deploy from a Git repository, pick a database under **Database** in the last step.
+- **A new database**: pick the app in **Inject into app** when you create it.
 
 The variable name depends on the engine:
 
@@ -87,14 +98,23 @@ The variable name depends on the engine:
 | PostgreSQL | `DATABASE_URL` |
 | MySQL, MariaDB | `MYSQL_URL` |
 | MongoDB | `MONGODB_URL` |
-| Redis | `REDIS_URL` |
+| Redis, Valkey | `REDIS_URL` |
 | ClickHouse | `CLICKHOUSE_URL` |
 
-If the app is on the same server as the database, it gets the internal URL. If it is on a different server, it gets the public URL, and you need to turn on [public access](/databases/public-access) for the app to connect.
+An app on the same server as the database gets the internal URL. An app on a different server gets the public URL, so the database's [public access](/databases/public-access) must be on. With public access off, Symplax refuses to connect an app on another server and tells you why, because that app could not reach the database.
 
 <Note>
-Injecting overwrites a variable with the same name if the app already has one. Redeploy the app afterwards so it picks up the new value.
+Connecting replaces a variable with the same name if the app already has one. Redeploy the app afterwards so it picks up the new value.
 </Note>
+
+### Apps that cannot reach the database
+
+Under **Connect to an app**, Symplax lists the apps that hold this database's address. If an app holds an address it cannot reach from where it runs, its row shows a warning:
+
+- **It cannot reach the database at the address it has**: for example, an app on the same server using the public address. Click **Fix** to give it the internal address, then redeploy the app.
+- **It is on another server and public access is off**: turn public access back on, or move the app or the database so they share a server.
+
+Turning public access off while apps on other servers use it asks you to confirm first, and names those apps.
 
 ## How many databases you can have
 

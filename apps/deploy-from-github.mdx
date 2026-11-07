@@ -30,11 +30,11 @@ You need a connected server first. See [Connect a server](/servers/connect) or [
     Give the app a name and choose the **Target server**. Leave **Domain** blank to get a free `*.symplax.app` address.
   </Step>
   <Step title="Add variables and deploy">
-    Add any environment variables your app needs, and a release command if it runs migrations. Click **Start Deployment**.
+    Optionally pick a managed **Database**: Symplax sets its connection string for you, with the internal address if it is on the same server and the public address if it is on another server with public access on. Add any environment variables your app needs, and a release command if it runs migrations. Click **Start Deployment**.
   </Step>
 </Steps>
 
-The first deploy usually takes a few minutes. Later deploys reuse the build cache and are faster.
+The first deploy usually takes a few minutes. Each app keeps its own build cache, so later deploys reuse every step whose inputs did not change and are faster.
 
 ## How Symplax builds your code
 
@@ -44,18 +44,21 @@ Without a `Dockerfile`, Symplax looks at the files in your root directory and wr
 
 | Stack | Detected by | Notes | Port |
 | --- | --- | --- | --- |
+| Laravel | `artisan` and `composer.json` | Checked before Node.js, so a Laravel app with Vite is still Laravel. Apache serves `public/`, and Vite assets are built in the same image. Uses the newest of PHP 8.4, 8.3 and 8.2 that your `composer.json` allows, from an image with the common extensions (PostgreSQL, MySQL, Redis, intl, gd, zip and more) and Composer already installed. | 8080 |
 | Node.js | `package.json` | Labels Next.js, Nuxt, NestJS, Express, Fastify and Remix. Runs `npm run start` if you have a `start` script, otherwise `node` on your entry file. | 3000 |
 | Static frontend | `package.json` with a `build` script and Vite, Create React App, Vue CLI or Angular, and no server framework | Runs your build, then serves the output folder as static files. | 8080 |
 | Python | `requirements.txt`, `pyproject.toml`, `setup.py` or `setup.cfg` | Django (gunicorn), FastAPI (uvicorn) or Flask (gunicorn). Python 3.11. | 8000 |
 | Go | `go.mod` | Reads the port from your code if it is hard-coded. Go 1.22. | 8080 |
 | Ruby | `Gemfile` | Rails, Rack (`config.ru`) or a plain Ruby file. Ruby 3.2. | 3000 |
 | Java | `pom.xml`, `build.gradle` or `build.gradle.kts` | Maven or Gradle, runs the built jar on Java 21. | 8080 |
-| PHP | `composer.json`, `index.php` or `artisan` | Laravel when `artisan` exists, otherwise Apache. PHP 8.2. | 80 |
+| PHP | `composer.json` or `index.php`, without Laravel | Apache. PHP 8.2. | 80 |
 | Rust | `Cargo.toml` | Builds a release binary. | 8080 |
 | Single script | One `index.js`, `server.js`, `app.js`, `main.py`, `app.py` or similar, no manifest | Runs the file directly. | 3000 or 8080 |
 | Static HTML | `.html` files and no manifest | Serves the folder. | 8080 |
 
 If nothing matches, the build stops and asks you to add a `Dockerfile`.
+
+For Laravel, a linked `DATABASE_URL` or `MYSQL_URL` is passed to Laravel as `DB_URL` and `DB_CONNECTION`, unless you set those yourself, so a connected database works without editing `config/database.php`.
 
 For Node.js, Symplax uses the Node version you ask for in `engines.node`, `.nvmrc` or `.node-version`, and Node 20 if you name none. It installs with npm, Yarn or pnpm depending on which lockfile you commit.
 

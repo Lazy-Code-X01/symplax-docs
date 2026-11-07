@@ -67,6 +67,8 @@ Symplax's own servers can always reach the database, whatever is on the list, so
 
 ## Connecting from an app on another server
 
-An app on a different server reaches the database through its public URL, so that database needs public access on. For a long-running connection like this, add the other server's IP to **Allowed IPs** and choose **Never** as the duration, so the connection does not drop when a window expires.
+An app on a different server reaches the database through its public URL, so that database needs public access on. For a long-running connection like this, add the other server's IP to **Allowed IPs** and choose **Never** as the duration, so the connection does not drop when a window expires. When you connect such an app and the database's public access is set to expire, Symplax tells you when the app will lose the connection.
 
-The simplest setup is still to run the app and its database on the same server, where they talk privately and no port needs to be open. See [Databases](/databases/overview#attach-a-database-to-an-app).
+Symplax will not connect an app on another server to a database whose public access is off. If you turn public access off while apps on other servers use it, Symplax asks you to confirm and names them, and the database page then flags each of those apps.
+
+The simplest setup is still to run the app and its database on the same server, where they talk privately and no port needs to be open. See [Databases](/databases/overview#connect-a-database-to-an-app).
