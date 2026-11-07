@@ -69,7 +69,14 @@ Do not use the public URL inside an app on the same server. Apps on that server 
 **Quick Connect** on the same tab shows ready-to-copy snippets for common clients, such as Prisma, `pg`, `psycopg2` and `ioredis`. They use the address you can actually reach: the internal one while public access is off.
 
 <Note>
-Managed PostgreSQL does not use SSL yet. If your app or its driver forces SSL, connecting fails with an error such as `The server does not support SSL connections`. Add `?sslmode=disable` to the end of the connection URL, or turn SSL off in your client's settings.
+Managed PostgreSQL accepts SSL connections, with a self-signed certificate made for each database. SSL is available, not required, so an app that does not ask for it connects as before.
+
+Because the certificate is self-signed, a client that verifies certificates rejects it. Tell it to use SSL without verifying:
+
+- Node.js `pg`: `ssl: { rejectUnauthorized: false }`, or `?sslmode=no-verify` on the URL. With `?sslmode=require`, `pg` verifies the certificate and refuses it.
+- Prisma, psql, Python and most other clients: `?sslmode=require` works as is.
+
+MySQL 8.4 and later and MariaDB 11 and later accept SSL the same way. Redis, Valkey, MongoDB, ClickHouse and MariaDB 10 do not use SSL.
 </Note>
 
 ### Who can see the password
